@@ -125,4 +125,45 @@ API (/api/v1) → Middleware → Controller → Service → Supabase (PostgreSQL
 
 ---
 
+## 8. Arquitectura del Sistema
+
+EcoSave Market sigue una arquitectura **cliente-servidor basada en API REST**, donde el frontend consume servicios expuestos por el backend.
+
+### Características de la arquitectura
+
+- Arquitectura basada en **servicios**
+- Separación entre **controladores y lógica de negocio**
+- Backend desacoplado del frontend
+- Persistencia en **Supabase (PostgreSQL gestionado)**
+
+--- 
+
+## 9. Modelo de Datos (Conceptual)
+
+Aunque no se identificó explícitamente un directorio `models/`, el sistema sugiere la existencia de las siguientes entidades principales:
+
+| Entidad | Descripción |
+|---|---|
+| `User` | Usuario del sistema (Supermercado, ONG o Administrador) |
+| `Order` | Orden de donación o entrega |
+| `Invoice` | Factura generada automáticamente |
+| `Notification` | Mensajes o avisos del sistema |
+
+---
+
+## 10. Conclusión Técnica
+
+El sistema **EcoSave Market** presenta una base tecnológica sólida basada en un stack moderno (React + AdonisJS + Supabase). El módulo de órdenes muestra un nivel avanzado de desarrollo con automatización mediante scheduler y generación automática de documentos.
+
+Sin embargo, antes de avanzar con nuevas funcionalidades, se recomienda fortalecer aspectos clave como:
+
+- Seguridad de rutas
+- Definición de modelos de datos
+- Implementación de control de acceso por roles
+- Incorporación de pruebas automatizadas
+
+Una vez resueltos estos puntos, el sistema estará mejor preparado para escalar y soportar nuevas funcionalidades dentro del proyecto.
+
+---
+
 *Universidad Pontificia Bolivariana — Medellín, 2026 | Proyecto TIC-1*
