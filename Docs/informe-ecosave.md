@@ -11,7 +11,7 @@
 
 ## 1. Introducción
 
-EcoSave Market es una plataforma anti-desperdicio que conecta **minimercados** y a futuro **supermercados**, **ONGs** y un **administrador central**. Este informe analiza el estado actual del desarrollo, identifica módulos implementados, detecta inconsistencias y define oportunidades de mejora.
+EcoSave Market es una plataforma anti-desperdicio que conecta **minimercados y tienda de barrio** y a futuro **supermercados**, **ONGs** y un **administrador central**. Este informe analiza el estado actual del desarrollo, identifica módulos implementados, detecta inconsistencias y define oportunidades de mejora.
 
 ---
 
