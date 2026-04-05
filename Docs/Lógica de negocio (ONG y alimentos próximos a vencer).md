@@ -23,7 +23,12 @@
    - 5.2 [Diagrama de Casos de Uso](#52-diagrama-de-casos-de-uso)
    - 5.3 [Borrador del Modelo Entidad-Relación](#53-borrador-del-modelo-entidad-relación)
 6. [Glosario](#6-glosario)
-
+7. [Diagnóstico del Estado Actual del Desarrollo](#7-diagnóstico-del-estado-actual-del-desarrollo)
+   - 7.1 [Arquitectura Técnica Implementada](#71-arquitectura-técnica-implementada)
+   - 7.2 [Módulos Actualmente Implementados](#72-módulos-actualmente-implementados)
+   - 7.3 [Brechas frente a la Lógica de Negocio Documentada](#73-brechas-frente-a-la-lógica-de-negocio-documentada)
+   - 7.4 [Resumen para el Equipo](#74-resumen-para-el-equipo)
+     
 ---
 
 ## 1. Actores del Sistema
@@ -656,4 +661,68 @@ Leyenda de relaciones:
 
 > **Notas de versión:**
 > - v1.0.0 (2025-04-01): Documento inicial. Cubre actores, flujos, reglas de negocio, entidades y diagramas para el MVP.
-> - Próximos pasos: Refinamiento del MER con tipos de datos detallados, integración con historias de usuario, y validación con stakeholders.
+> - v1.1.0 (2026-04-05): Se agrega sección 7 con diagnóstico del estado actual del desarrollo.
+
+---
+
+## 7. Diagnóstico del Estado Actual del Desarrollo
+
+Esta sección contrasta la lógica de negocio documentada en las secciones anteriores con el estado real del desarrollo del sistema a la fecha de este análisis.
+
+---
+
+### 7.1 Arquitectura Técnica Implementada
+
+| Capa              | Tecnología / Patrón actual                                                                 |
+|-------------------|--------------------------------------------------------------------------------------------|
+| **Frontend**      | Aplicación web basada en componentes con `Context API` para manejo de estado global (sesiones de usuario) |
+| **Backend**       | Supabase como Backend-as-a-Service (BaaS): gestiona autenticación, base de datos y storage |
+| **Base de datos** | PostgreSQL administrado por Supabase; estructura actual de tipo CRUD básico                |
+| **Autenticación** | Sistema de sesiones gestionado por Supabase Auth con diferenciación de perfiles por rol    |
+
+---
+
+### 7.2 Módulos Actualmente Implementados
+
+| # | Módulo                      | Estado        | Descripción de lo implementado                                                                 |
+|---|-----------------------------|:-------------:|-----------------------------------------------------------------------------------------------|
+| 1 | **Autenticación**           | ✅ Funcional  | Registro e inicio de sesión con diferenciación básica de perfiles (Tienda, ONG, Consumidor)   |
+| 2 | **Dashboard**               | ✅ Funcional  | Panel principal con listado de productos próximos a vencer, filtros por categoría y acciones rápidas ("Donar", "Descuento") |
+| 3 | **Listado de ubicaciones**  | ✅ Funcional  | Visualización básica de ONGs registradas y puntos de recolección en formato lista             |
+| 4 | **Notificaciones**          | ✅ Parcial    | Alertas básicas en el frontend sobre productos próximos a caducar; no hay proceso batch automatizado |
+
+---
+
+### 7.3 Brechas frente a la Lógica de Negocio Documentada
+
+Al comparar el código actual con la lógica de negocio definida en este documento, se identifican las siguientes inconsistencias y componentes faltantes:
+
+#### Base de datos
+- **No existen las tablas `Batch` (Lote) ni `InventoryMovement`** en Supabase. El sistema actual maneja los productos con un CRUD simple (una sola tabla), sin trazabilidad de movimientos ni agrupación por lotes.
+- **Falta aplicar Row Level Security (RLS)** por rol en Supabase. Actualmente cualquier usuario autenticado podría acceder a datos que no le corresponden según la tabla de permisos de la sección 3.3.
+
+#### Flujos de negocio
+- **El flujo de donación está incompleto:** el botón "Donar" del dashboard existe en la UI, pero el ciclo de estados (`PENDIENTE` → `ACEPTADA` → `RECIBIDA`) y la notificación a la ONG no están codificados.
+- **No existe el flujo de recepción e inspección (sección 2.2):** la ONG no tiene actualmente ningún módulo para aceptar, rechazar o registrar la inspección física de un alimento.
+- **No existe el flujo de distribución a beneficiarios (sección 2.5):** no hay módulo de asignación ni registro de movimientos tipo `SALIDA`.
+
+#### Reglas de negocio
+- **FEFO no está implementado:** el dashboard muestra productos pero no los ordena ni prioriza por fecha de vencimiento en la lógica de distribución.
+- **El proceso batch de alertas (sección 2.4) no existe:** los niveles de alerta (🟢 Normal, 🟡 Próximo, 🔴 Crítico, ⛔ Vencido) no se recalculan automáticamente de forma diaria.
+- **No hay control de stock negativo:** el sistema actual no valida si hay suficiente stock antes de registrar una salida.
+
+#### Seguridad
+- **Tokens de sesión:** la expiración de sesión está delegada completamente a Supabase Auth con configuración por defecto; no se ha ajustado según los requerimientos del sistema.
+- **Las acciones sensibles no requieren doble confirmación** (ej. dar de baja un lote, ajustar inventario manualmente).
+
+---
+
+### 7.4 Resumen para el Equipo
+
+> El sistema cuenta con una base sólida de autenticación y una interfaz de usuario funcional (Dashboard + Listado de ONGs). Sin embargo, la base de datos actual no refleja el modelo entidad-relación definido en la sección 4 de este documento: faltan las tablas de `Lote` y `Movimiento de Inventario`, que son el núcleo de toda la trazabilidad del sistema. Antes de desarrollar cualquier nueva funcionalidad, es prioritario:
+>
+> 1. Ajustar el esquema de base de datos en Supabase para incluir las entidades del MER (sección 4).
+> 2. Configurar las políticas RLS por rol (sección 3.3).
+> 3. Implementar el flujo de donación completo con sus cambios de estado (sección 2.1).
+>
+> Sin estas correcciones, las nuevas funcionalidades (integraciones externas, certificados de donación, sistema de reputación) no tendrán una base de datos estable sobre la cual operar.
