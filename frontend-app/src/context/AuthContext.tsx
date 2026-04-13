@@ -27,9 +27,23 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
 
-  // Remove any existing token on init
+  // Restaurar sesión guardada si existe
   React.useEffect(() => {
-    localStorage.removeItem('token');
+    const storedToken = localStorage.getItem('token');
+    const storedUser = localStorage.getItem('user');
+
+    if (storedToken) {
+      setToken(storedToken);
+      setIsAuthenticated(true);
+    }
+
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch {
+        localStorage.removeItem('user');
+      }
+    }
   }, []);
 
   const login = async (email: string, password: string, role?: 'supermarket' | 'ong' | 'admin') => {
@@ -60,6 +74,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setUser(data.user);
       setIsAuthenticated(true);
       localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
       return { success: true };
     } catch (error) {
       return { 
@@ -99,6 +114,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setUser(null);
     setToken(null);
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
   };
 
   const getAuthHeaders = () => {

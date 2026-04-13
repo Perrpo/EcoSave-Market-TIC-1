@@ -1,276 +1,249 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import './AuthForm.css';
+import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
+import './AuthForm.css'
+
+type Role = 'supermarket' | 'ong' | 'admin'
+
+const Logo = ({ size = 28 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden="true" className="logo-mark">
+    <defs>
+      <linearGradient id="leaf" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop stopColor="#1a7a4a" offset="0%" />
+        <stop stopColor="#24b26e" offset="100%" />
+      </linearGradient>
+    </defs>
+    <path d="M12 34c0-14.36 11.64-26 26-26h14c0 14.36-11.64 26-26 26H12z" fill="url(#leaf)" />
+    <path d="M38 6c-7 10-10 20-10 30 6-6 11-13 18-18" stroke="#f7f6f2" strokeWidth="4" strokeLinecap="round" fill="none" />
+    <path d="M29 52c0-6 5-11 11-11h4l-4-4" stroke="#1a7a4a" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    <circle cx="45" cy="41" r="2.5" fill="#e07b39" />
+  </svg>
+)
+
+const roleCopy: Record<Role, { title: string; desc: string }> = {
+  supermarket: { title: 'Supermercado', desc: 'Publica excedentes y dona antes de que venzan' },
+  ong: { title: 'ONG', desc: 'Solicita y recibe donaciones verificadas' },
+  admin: { title: 'Admin', desc: 'Supervisa métricas y operaciones' },
+}
 
 const AuthForm: React.FC = () => {
-  const [tab, setTab] = useState<'login' | 'register'>('login');
-  const [businessName, setBusinessName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [nit, setNit] = useState('');
-  const [role, setRole] = useState<'supermarket' | 'ong' | 'admin'>('supermarket');
-  const [loginRole, setLoginRole] = useState<'supermarket' | 'ong' | 'admin'>('supermarket');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
-  const navigate = useNavigate();
-  const auth = useAuth();
+  const [tab, setTab] = useState<'login' | 'register'>('login')
+  const [businessName, setBusinessName] = useState('')
+  const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
+  const [nit, setNit] = useState('')
+  const [role, setRole] = useState<Role>('supermarket')
+  const [loginRole, setLoginRole] = useState<Role>('supermarket')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
+  const navigate = useNavigate()
+  const auth = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
 
     if (!email || !password) {
-      setError('Email y contraseña son requeridos');
-      return;
+      setError('Email y contraseña son requeridos')
+      return
     }
 
     if (tab === 'register' && (!businessName || !phone || !nit)) {
-      setError('Todos los campos son requeridos para registrarse');
-      return;
+      setError('Completa todos los campos para registrarte')
+      return
     }
 
-    setIsLoading(true);
-    setError('');
-    setSuccessMessage('');
+    setIsLoading(true)
+    setError('')
+    setSuccessMessage('')
 
     try {
-      let result;
+      let result
       if (tab === 'login') {
-        result = await auth.login(email, password, loginRole);
+        result = await auth.login(email, password, loginRole)
         if (result.success) {
-          // Redirigir según el rol del usuario
-          if (auth.user?.role === 'admin') {
-            navigate('/dashboard-admin');
-          } else if (auth.user?.role === 'ong') {
-            navigate('/dashboard-ong');
-          } else {
-            navigate('/dashboard');
-          }
+          if (auth.user?.role === 'admin') navigate('/dashboard-admin')
+          else if (auth.user?.role === 'ong') navigate('/dashboard-ong')
+          else navigate('/dashboard')
         } else {
-          setError(result.error || 'Error desconocido');
+          setError(result.error || 'Error desconocido')
         }
       } else {
-        result = await auth.register(email, password, businessName, phone, nit, role);
+        result = await auth.register(email, password, businessName, phone, nit, role)
         if (result.success) {
-          const message = result.message || '¡Registro exitoso! Ahora puedes iniciar sesión.';
-          setSuccessMessage(message);
-          setTab('login');
-          setBusinessName('');
-          setPhone('');
-          setNit('');
-          setRole('supermarket');
-          // Mantener email para facilitar el login
-          setPassword('');
+          setSuccessMessage(result.message || 'Registro exitoso. Inicia sesión para continuar.')
+          setTab('login')
+          setBusinessName('')
+          setPhone('')
+          setNit('')
+          setRole('supermarket')
+          setPassword('')
         } else {
-          setError(result.error || 'Error desconocido');
+          setError(result.error || 'Error desconocido')
         }
       }
     } catch {
-      setError('Error de conexión');
+      setError('Error de conexión')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
+
+  const renderRoleCards = (selected: Role, onSelect: (r: Role) => void) => (
+    <div className="role-grid" role="group" aria-label="Selecciona tu rol">
+      {(['supermarket', 'ong', 'admin'] as Role[]).map((r) => (
+        <button
+          type="button"
+          key={r}
+          className={`role-card ${selected === r ? 'is-active' : ''}`}
+          onClick={() => onSelect(r)}
+        >
+          <div className="role-icon">
+            {r === 'supermarket' ? '🛒' : r === 'ong' ? '🤝' : '🛡️'}
+          </div>
+          <div>
+            <p className="role-title">{roleCopy[r].title}</p>
+            <p className="role-desc">{roleCopy[r].desc}</p>
+          </div>
+        </button>
+      ))}
+    </div>
+  )
 
   return (
-    <div className="auth-bg">
-      <div className="auth-container">
-        <div className={`split-card ${tab === 'register' ? 'is-register' : ''}`}>
-          <aside className="panel-left">
-            <div className="brand">
-              <span className="brand-logo">🍱</span>
+    <div className="auth-shell">
+      <div className="auth-hero">
+        <div className="hero-top">
+          <Logo size={36} />
+          <div>
+            <p className="eyebrow">EcoSave Market</p>
+            <h1>Conecta alimentos con quienes los necesitan.</h1>
+            <p className="hero-copy">
+              Supermercados y ONGs colaboran en tiempo real para reducir desperdicio y ampliar el impacto social.
+            </p>
+          </div>
+        </div>
+        <div className="hero-bottom">
+          <div className="impact-card">
+            <p className="impact-title">Impacto en marcha</p>
+            <div className="impact-metrics">
+              <div>
+                <span className="impact-number">+3200kg</span>
+                <span className="impact-label">Rescatados</span>
+              </div>
+              <div>
+                <span className="impact-number">140</span>
+                <span className="impact-label">Entregas</span>
+              </div>
+              <div>
+                <span className="impact-number">26</span>
+                <span className="impact-label">Aliados</span>
+              </div>
             </div>
-            {tab === 'login' ? (
-              <div key="left-login">
-                <h2 className="right-title">Sign In</h2>
-                <form onSubmit={handleSubmit} className="form">
-                  <div className="input-row">
-                    <span className="icon">👤</span>
-                    <select
-                      value={loginRole}
-                      onChange={(e) => setLoginRole(e.target.value as 'supermarket' | 'ong' | 'admin')}
-                      required
-                      style={{
-                        padding: '12px',
-                        border: '1px solid #ddd',
-                        borderRadius: '5px',
-                        fontSize: '14px',
-                        width: '100%',
-                        backgroundColor: 'white'
-                      }}
-                    >
-                      <option value="supermarket">🏪 Supermercado</option>
-                      <option value="ong">🤝 ONG</option>
-                      <option value="admin">⚙️ Administrador</option>
-                    </select>
-                  </div>
-                  <div className="input-row">
-                    <span className="icon">@</span>
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Email"
-                      required
-                    />
-                  </div>
-                  <div className="input-row">
-                    <span className="icon">🔒</span>
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Password"
-                      required
-                      autoComplete="current-password"
-                    />
-                    <button
-                      type="button"
-                      className="reveal-btn"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? '🙈' : '👁️'}
-                    </button>
-                  </div>
-                  {error && <div className="error-message">{error}</div>}
-                  {successMessage && <div className="success-message">{successMessage}</div>}
-                  <button className="submit-btn" type="submit" disabled={isLoading}>
-                    {isLoading ? 'Procesando...' : 'SIGN IN'}
-                  </button>
-                </form>
-                <div className="switch-row">
-                  <button className="ghost" onClick={() => setTab('register')}>
-                    Create account
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div key="left-welcome">
-                <h2 className="left-title">Welcome Back!</h2>
-                <p className="left-text">
-                  To keep connected with us please login with your personal info
-                </p>
-                <button className="left-cta" onClick={() => setTab('login')}>
-                  SIGN IN
-                </button>
-              </div>
-            )}
-          </aside>
-          <section className="panel-right">
-            {tab === 'register' ? (
-              <div key="right-register">
-                <h2 className="right-title">Create Account</h2>
-                <p className="right-helper">Complete todos los campos para registrarse:</p>
-                <form onSubmit={handleSubmit} className="form">
-                  <div className="input-row">
-                    <span className="icon">💼</span>
-                    <select
-                      value={role}
-                      onChange={(e) => setRole(e.target.value as 'supermarket' | 'ong')}
-                      required
-                      style={{
-                        padding: '12px',
-                        border: '1px solid #ddd',
-                        borderRadius: '5px',
-                        fontSize: '14px',
-                        width: '100%',
-                        backgroundColor: 'white'
-                      }}
-                    >
-                      <option value="supermarket">🏪 Supermercado</option>
-                      <option value="ong">🤝 ONG</option>
-                      <option value="admin">⚙️ Administrador</option>
-                    </select>
-                  </div>
-                  <div className="input-row">
-                    <span className="icon">🏢</span>
-                    <input
-                      type="text"
-                      value={businessName}
-                      onChange={(e) => setBusinessName(e.target.value)}
-                      placeholder="Nombre o Razón Social"
-                      required
-                    />
-                  </div>
-                  <div className="input-row">
-                    <span className="icon">@</span>
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Correo Electrónico"
-                      required
-                    />
-                  </div>
-                  <div className="input-row">
-                    <span className="icon">📞</span>
-                    <input
-                      type="tel"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="Teléfono"
-                      required
-                    />
-                  </div>
-                  <div className="input-row">
-                    <span className="icon">🆔</span>
-                    <input
-                      type="text"
-                      value={nit}
-                      onChange={(e) => setNit(e.target.value)}
-                      placeholder="NIT"
-                      required
-                    />
-                  </div>
-                  <div className="input-row">
-                    <span className="icon">🔒</span>
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Password"
-                      required
-                    />
-                    <button
-                      type="button"
-                      className="reveal-btn"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? '🙈' : '👁️'}
-                    </button>
-                  </div>
-                  {error && <div className="error-message">{error}</div>}
-                  {successMessage && <div className="success-message">{successMessage}</div>}
-                  <button className="submit-btn" type="submit" disabled={isLoading}>
-                    {isLoading ? 'Procesando...' : 'SIGN UP'}
-                  </button>
-                </form>
-                <div className="switch-row">
-                  <button className="ghost" onClick={() => setTab('login')}>
-                    I already have an account
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div key="right-hello">
-                <h2 className="left-title">Hello, friend</h2>
-                <p className="left-text">
-                  Enter your personal details and start journey with us
-                </p>
-                <button className="left-cta" onClick={() => setTab('register')}>
-                  SIGN UP
-                </button>
-              </div>
-            )}
-          </section>
-          <div className="switch-overlay" aria-hidden="true"></div>
+          </div>
         </div>
       </div>
-    </div>
-  );
-};
 
-export default AuthForm;
+      <div className="auth-panel">
+        <div className="panel-header">
+          <Logo />
+          <div>
+            <p className="eyebrow">Bienvenido</p>
+            <h2>{tab === 'login' ? 'Inicia sesión' : 'Crear cuenta'}</h2>
+          </div>
+          <button
+            className="tab-toggle"
+            type="button"
+            onClick={() => setTab(tab === 'login' ? 'register' : 'login')}
+          >
+            {tab === 'login' ? 'Quiero registrarme' : 'Ya tengo cuenta'}
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="auth-form">
+          {tab === 'login' ? renderRoleCards(loginRole, setLoginRole) : renderRoleCards(role, setRole)}
+
+          {tab === 'register' && (
+            <>
+              <label className="field">
+                <span>Razón Social</span>
+                <input
+                  type="text"
+                  value={businessName}
+                  onChange={(e) => setBusinessName(e.target.value)}
+                  placeholder="Ej. Mercacentro Laureles"
+                  required
+                />
+              </label>
+              <div className="grid two-cols">
+                <label className="field">
+                  <span>Teléfono</span>
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+57 300 000 0000"
+                    required
+                  />
+                </label>
+                <label className="field">
+                  <span>NIT</span>
+                  <input
+                    type="text"
+                    value={nit}
+                    onChange={(e) => setNit(e.target.value)}
+                    placeholder="900123456-1"
+                    required
+                  />
+                </label>
+              </div>
+            </>
+          )}
+
+          <label className="field">
+            <span>Email</span>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="correo@ejemplo.com"
+              required
+            />
+          </label>
+
+          <label className="field">
+            <span>Contraseña</span>
+            <div className="password-field">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Mínimo 8 caracteres"
+                required
+                autoComplete={tab === 'login' ? 'current-password' : 'new-password'}
+              />
+              <button
+                type="button"
+                className="ghost-btn"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? 'Ocultar' : 'Mostrar'}
+              </button>
+            </div>
+          </label>
+
+          {error && <div className="alert error">{error}</div>}
+          {successMessage && <div className="alert success">{successMessage}</div>}
+
+          <button className="btn-primary" type="submit" disabled={isLoading}>
+            {isLoading ? 'Procesando…' : tab === 'login' ? 'Ingresar' : 'Crear cuenta'}
+          </button>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+export default AuthForm

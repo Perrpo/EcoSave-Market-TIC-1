@@ -1,27 +1,43 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
+import apiService from '../services/api';
 import './Dashboard.css';
 
 interface AvailableDonation {
-  id: number;
-  productName: string;
+  id: string;
+  product_id: string;
+  product_name: string;
+  product_category: string;
   quantity: number;
-  category: string;
-  expiryDate: string;
-  supermarket: string;
-  distance: string;
-  status: 'available' | 'requested' | 'collected';
+  expiry_date: string;
+  supermarket_id: string;
+  status: 'available' | 'requested' | 'completed';
+  created_at: string;
+  supermarkets?: {
+    business_name: string;
+    email: string;
+    phone: string;
+  };
 }
 
 interface RequestHistory {
-  id: number;
-  productName: string;
+  id: string;
+  product_id: string;
+  product_name: string;
+  product_category: string;
   quantity: number;
-  requestDate: string;
-  collectionDate: string;
-  supermarket: string;
-  status: 'completed' | 'pending' | 'cancelled';
+  supermarket_id: string;
+  ong_id?: string;
+  status: 'available' | 'requested' | 'completed';
+  created_at: string;
+  requested_at?: string;
+  completed_at?: string;
+  supermarkets?: {
+    business_name: string;
+    email: string;
+    phone: string;
+  };
 }
 
 const DashboardONG: React.FC = () => {
@@ -33,152 +49,102 @@ const DashboardONG: React.FC = () => {
   const [selectedDonation, setSelectedDonation] = useState<AvailableDonation | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Datos de ejemplo
-  const exampleDonations: AvailableDonation[] = [
-    {
-      id: 1,
-      productName: 'Pan integral',
-      quantity: 25,
-      category: 'Panadería',
-      expiryDate: '2025-01-20 (HOY)',
-      supermarket: 'Supermercado El Ahorro',
-      distance: '2.5 km',
-      status: 'available'
-    },
-    {
-      id: 2,
-      productName: 'Manzanas',
-      quantity: 8,
-      category: 'Frutas',
-      expiryDate: '2025-01-21 (1 día)',
-      supermarket: 'Mercado Fresco',
-      distance: '1.8 km',
-      status: 'available'
-    },
-    {
-      id: 3,
-      productName: 'Yogur natural',
-      quantity: 12,
-      category: 'Lácteos',
-      expiryDate: '2025-01-22 (2 días)',
-      supermarket: 'Supermercado La Placita',
-      distance: '3.2 km',
-      status: 'requested'
-    },
-    {
-      id: 4,
-      productName: 'Tomates',
-      quantity: 10,
-      category: 'Verduras',
-      expiryDate: '2025-01-23 (3 días)',
-      supermarket: 'Supermercado El Ahorro',
-      distance: '2.5 km',
-      status: 'available'
-    },
-    {
-      id: 5,
-      productName: 'Leche entera',
-      quantity: 15,
-      category: 'Lácteos',
-      expiryDate: '2025-01-25 (5 días)',
-      supermarket: 'Mercado Fresco',
-      distance: '1.8 km',
-      status: 'available'
-    }
-  ];
-
-  const exampleHistory: RequestHistory[] = [
-    {
-      id: 1,
-      productName: 'Queso fresco',
-      quantity: 3,
-      requestDate: '2025-01-18',
-      collectionDate: '2025-01-19',
-      supermarket: 'Supermercado El Ahorro',
-      status: 'completed'
-    },
-    {
-      id: 2,
-      productName: 'Pollo fresco',
-      quantity: 5,
-      requestDate: '2025-01-17',
-      collectionDate: '2025-01-18',
-      supermarket: 'Mercado Fresco',
-      status: 'completed'
-    },
-    {
-      id: 3,
-      productName: 'Snacks variados',
-      quantity: 20,
-      requestDate: '2025-01-20',
-      collectionDate: 'Pendiente',
-      supermarket: 'Supermercado La Placita',
-      status: 'pending'
-    }
-  ];
-
   useEffect(() => {
-    loadAvailableDonations();
-    loadRequestHistory();
-  }, []);
+    if (auth.user?.id) {
+      loadAvailableDonations();
+      loadRequestHistory();
+    }
+  }, [auth.user?.id]);
 
-  const loadAvailableDonations = () => {
-    setIsLoading(true);
-    setAvailableDonations(exampleDonations);
-    setIsLoading(false);
+  const loadAvailableDonations = async () => {
+    try {
+      setIsLoading(true);
+      const response = await apiService.getAvailableDonations();
+      
+      if (response.success && response.data) {
+        setAvailableDonations(response.data);
+      } else {
+        setAvailableDonations([]);
+      }
+    } catch (error) {
+      console.error('Error loading available donations:', error);
+      setAvailableDonations([]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const loadRequestHistory = () => {
-    setRequestHistory(exampleHistory);
-  };
-
-  const handleRequestDonation = (donation: AvailableDonation) => {
-    setSelectedDonation(donation);
+  const loadRequestHistory = async () => {
+    if (!auth.user?.id) return;
     
-    // Update donation status
-    setAvailableDonations(prev => 
-      prev.map(d => d.id === donation.id ? { ...d, status: 'requested' } : d)
-    );
-
-    // Add to request history
-    const newRequest: RequestHistory = {
-      id: requestHistory.length + 1,
-      productName: donation.productName,
-      quantity: donation.quantity,
-      requestDate: new Date().toISOString().split('T')[0],
-      collectionDate: 'Pendiente',
-      supermarket: donation.supermarket,
-      status: 'pending'
-    };
-    setRequestHistory([newRequest, ...requestHistory]);
-    
-    // Send notification
-    addNotification({
-      type: 'donation_requested',
-      title: 'Solicitud de Donación Enviada',
-      message: `Has solicitado ${donation.productName} (${donation.quantity} unidades) de ${donation.supermarket}.`,
-    });
-    
-    setSelectedDonation(null);
-  };
-
-  const handleConfirmReceipt = (requestId: number) => {
-    const request = requestHistory.find(r => r.id === requestId);
-    setRequestHistory(prev => 
-      prev.map(r => 
-        r.id === requestId 
-          ? { ...r, status: 'completed' as const, collectionDate: new Date().toISOString().split('T')[0] }
-          : r
-      )
-    );
-
-    // Send notification
-    if (request) {
-      addNotification({
-        type: 'donation_completed',
-        title: 'Recepción Confirmada',
-        message: `Has recibido ${request.productName} (${request.quantity} unidades) de ${request.supermarket}.`,
+    try {
+      const response = await apiService.getDonations({
+        ong_id: auth.user.id,
       });
+      
+      if (response.success && response.data) {
+        setRequestHistory(response.data);
+      } else {
+        setRequestHistory([]);
+      }
+    } catch (error) {
+      console.error('Error loading request history:', error);
+      setRequestHistory([]);
+    }
+  };
+
+  const handleRequestDonation = async (donation: AvailableDonation) => {
+    if (!auth.user?.id) {
+      alert('Error: usuario no autenticado');
+      return;
+    }
+
+    try {
+      const response = await apiService.requestDonation(donation.id);
+
+      if (response.success) {
+        // Send notification
+        addNotification({
+          type: 'donation_requested',
+          title: 'Solicitud de Donación Enviada',
+          message: `Has solicitado ${donation.product_name} (${donation.quantity} unidades) de ${donation.supermarkets?.business_name || 'Supermercado'}.`,
+        });
+        
+        // Reload data
+        await loadAvailableDonations();
+        await loadRequestHistory();
+      } else {
+        alert('Error al solicitar donación: ' + response.message);
+      }
+    } catch (error) {
+      console.error('Error requesting donation:', error);
+      alert('Error al solicitar donación. Inténtalo de nuevo.');
+    }
+  };
+
+  const handleConfirmReceipt = async (requestId: string) => {
+    try {
+      const response = await apiService.confirmDonation(requestId);
+
+      if (response.success) {
+        // Send notification
+        const request = requestHistory.find(r => r.id === requestId);
+        if (request) {
+          addNotification({
+            type: 'donation_completed',
+            title: 'Recepción Confirmada',
+            message: `Has recibido ${request.product_name} (${request.quantity} unidades) de ${request.supermarkets?.business_name || 'Supermercado'}.`,
+          });
+        }
+        
+        // Reload data
+        await loadRequestHistory();
+      } else {
+        alert('Error al confirmar recepción: ' + response.message);
+      }
+    } catch (error) {
+      console.error('Error confirming receipt:', error);
+      alert('Error al confirmar recepción. Inténtalo de nuevo.');
     }
   };
 
@@ -208,14 +174,12 @@ const DashboardONG: React.FC = () => {
           <h1 className="main-title">Dashboard ONG</h1>
           <p className="subtitle">Gestiona tus solicitudes de donaciones</p>
         </div>
-        <div className="user-info">
-          <div>
+        <div className="header-meta">
+          <div className="user-chip">
             <b>{auth.user?.businessName || 'ONG Solidaria'}</b>
-            <div className="email">{auth.user?.email || 'ong@ecosave.com'}</div>
+            <div className="subtitle">{auth.user?.email || 'ong@ecosave.com'}</div>
           </div>
-          <button className="logout" onClick={auth.logout}>
-            Salir
-          </button>
+          <button className="btn-secondary" onClick={auth.logout}>Salir</button>
         </div>
       </div>
 
@@ -278,21 +242,21 @@ const DashboardONG: React.FC = () => {
               <div key={donation.id} className="product">
                 <div className="product-info">
                   <span className={`dot ${donation.status === 'available' ? 'verde' : donation.status === 'requested' ? 'amarillo' : 'azul'}`}></span>
-                  <span className="product-name">{donation.productName}</span>
+                  <span className="product-name">{donation.product_name}</span>
                   <span className={`badge ${donation.status}`}>
                     {donation.status === 'available' ? 'Disponible' : 
-                     donation.status === 'requested' ? 'Solicitado' : 'Recolectado'}
+                     donation.status === 'requested' ? 'Solicitado' : 'Completado'}
                   </span>
                   <div className="desc">
-                    {donation.category} • {donation.quantity} unidades
+                    {donation.product_category} • {donation.quantity} unidades
                   </div>
                   <div className="desc">
                     <span className="calendar-icon">📅</span>
-                    Vence: {donation.expiryDate}
+                    Vence: {donation.expiry_date}
                   </div>
                   <div className="desc">
                     <span className="location-icon">📍</span>
-                    {donation.supermarket} • {donation.distance}
+                    {donation.supermarkets?.business_name || 'Supermercado'}
                   </div>
                 </div>
                 <div className="actions">
@@ -322,18 +286,18 @@ const DashboardONG: React.FC = () => {
                 requestHistory.map((request) => (
                   <div key={request.id} className="donation-item">
                     <div className="donation-info">
-                      <h4>{request.productName}</h4>
+                      <h4>{request.product_name}</h4>
                       <p>Cantidad: {request.quantity} unidades</p>
-                      <p>Fecha solicitud: {request.requestDate}</p>
-                      <p>Fecha recolección: {request.collectionDate}</p>
-                      <p>Supermercado: {request.supermarket}</p>
+                      <p>Fecha solicitud: {new Date(request.requested_at || request.created_at).toLocaleDateString()}</p>
+                      <p>Fecha recolección: {request.completed_at ? new Date(request.completed_at).toLocaleDateString() : 'Pendiente'}</p>
+                      <p>Supermercado: {request.supermarkets?.business_name || 'Supermercado'}</p>
                     </div>
                     <div className="donation-status">
                       <span className={`badge ${request.status}`}>
                         {request.status === 'completed' ? 'Completada' : 
-                         request.status === 'pending' ? 'Pendiente' : 'Cancelada'}
+                         request.status === 'requested' ? 'Pendiente' : 'Disponible'}
                       </span>
-                      {request.status === 'pending' && (
+                      {request.status === 'requested' && (
                         <button 
                           className="btn-confirm" 
                           onClick={() => handleConfirmReceipt(request.id)}
@@ -363,10 +327,9 @@ const DashboardONG: React.FC = () => {
             <h3>Confirmar Solicitud</h3>
             <p>¿Estás seguro que quieres solicitar esta donación?</p>
             <div className="donation-summary">
-              <p><strong>Producto:</strong> {selectedDonation.productName}</p>
+              <p><strong>Producto:</strong> {selectedDonation.product_name}</p>
               <p><strong>Cantidad:</strong> {selectedDonation.quantity} unidades</p>
-              <p><strong>Supermercado:</strong> {selectedDonation.supermarket}</p>
-              <p><strong>Distancia:</strong> {selectedDonation.distance}</p>
+              <p><strong>Supermercado:</strong> {selectedDonation.supermarkets?.business_name || 'Supermercado'}</p>
             </div>
             <div className="modal-actions">
               <button onClick={() => setSelectedDonation(null)} className="btn-cancel">
@@ -384,3 +347,4 @@ const DashboardONG: React.FC = () => {
 };
 
 export default DashboardONG;
+

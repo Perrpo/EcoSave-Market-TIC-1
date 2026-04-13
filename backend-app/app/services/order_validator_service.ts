@@ -29,7 +29,7 @@ class OrderValidatorService {
     const warnings: string[] = []
 
     try {
-      const supabase = supabaseService.getClient()
+    const supabase = supabaseService.getClient(undefined, true)
       
       // Obtener orden de Supabase
       const { data: order, error } = await supabase
@@ -107,7 +107,7 @@ class OrderValidatorService {
     const warnings: string[] = []
 
     try {
-      const supabase = supabaseService.getClient()
+    const supabase = supabaseService.getClient(undefined, true)
 
       for (const product of products) {
         const { data: productData, error } = await supabase
@@ -167,7 +167,7 @@ class OrderValidatorService {
    */
   async markAsValidated(orderId: string): Promise<boolean> {
     try {
-      const supabase = supabaseService.getClient()
+    const supabase = supabaseService.getClient(undefined, true)
       
       const { error } = await supabase
         .from('orders')

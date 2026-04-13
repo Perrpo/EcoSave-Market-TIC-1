@@ -46,7 +46,7 @@ class EmailService {
         throw new Error('Email transporter not initialized')
       }
 
-      const supabase = supabaseService.getClient()
+      const supabase = supabaseService.getClient(undefined, true)
       
       // Obtener datos de la orden
       const { data: order, error } = await supabase
@@ -183,7 +183,7 @@ class EmailService {
       await this.initTransporter()
       if (!this.transporter) return false
 
-      const supabase = supabaseService.getClient()
+      const supabase = supabaseService.getClient(undefined, true)
       
       const { data: order, error } = await supabase
         .from('orders')
@@ -297,7 +297,7 @@ class EmailService {
     emailType: string
   ): Promise<void> {
     try {
-      const supabase = supabaseService.getClient()
+      const supabase = supabaseService.getClient(undefined, true)
       
       await supabase.from('email_logs').insert({
         order_id: orderId,

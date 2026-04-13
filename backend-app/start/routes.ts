@@ -31,6 +31,32 @@ router.group(() => {
   // Users
   router.resource('users', '#controllers/http/user_controller').apiOnly()
   
+  // Products
+  router.group(() => {
+    router.get('/', '#controllers/http/product_controller.index')
+    router.post('/', '#controllers/http/product_controller.store')
+    router.get('/:id', '#controllers/http/product_controller.show')
+    router.put('/:id', '#controllers/http/product_controller.update')
+    router.delete('/:id', '#controllers/http/product_controller.destroy')
+    router.get('/available', '#controllers/http/product_controller.getAvailable')
+  }).prefix('products')
+  
+  // Donations
+  router.group(() => {
+    router.get('/', '#controllers/http/donation_controller.index')
+    router.post('/', '#controllers/http/donation_controller.store')
+    router.get('/available', '#controllers/http/donation_controller.getAvailable')
+    router.get('/stats', '#controllers/http/donation_controller.getStats')
+    router.get('/:id', '#controllers/http/donation_controller.show')
+    router.post('/:id/request', '#controllers/http/donation_controller.request')
+    router.post('/:id/confirm', '#controllers/http/donation_controller.confirm')
+  }).prefix('donations')
+
+  // Locations (ONGs)
+  router.group(() => {
+    router.get('/', '#controllers/http/location_controller.index')
+  }).prefix('locations')
+  
   // Auth
   router.post('auth/register', '#controllers/http/auth_controller.register')
   router.post('auth/login', '#controllers/http/auth_controller.login')

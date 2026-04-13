@@ -93,7 +93,7 @@ class OrderProcessorService {
    */
   async processPendingOrders(): Promise<ProcessingResult[]> {
     try {
-      const supabase = supabaseService.getClient()
+      const supabase = supabaseService.getClient(undefined, true)
       
       // Obtener órdenes pendientes
       const { data: orders, error } = await supabase
@@ -134,7 +134,7 @@ class OrderProcessorService {
    */
   private async updateOrderStatus(orderId: string, status: string): Promise<void> {
     try {
-      const supabase = supabaseService.getClient()
+      const supabase = supabaseService.getClient(undefined, true)
       
       await supabase
         .from('orders')
@@ -158,7 +158,7 @@ class OrderProcessorService {
    */
   private async updateInventory(orderId: string): Promise<void> {
     try {
-      const supabase = supabaseService.getClient()
+      const supabase = supabaseService.getClient(undefined, true)
       
       // Obtener productos de la orden
       const { data: order, error } = await supabase
@@ -204,7 +204,7 @@ class OrderProcessorService {
    */
   async cancelOrder(orderId: string, reason?: string): Promise<boolean> {
     try {
-      const supabase = supabaseService.getClient()
+      const supabase = supabaseService.getClient(undefined, true)
       
       await supabase
         .from('orders')
@@ -231,7 +231,7 @@ class OrderProcessorService {
    */
   async getProcessingStats(): Promise<any> {
     try {
-      const supabase = supabaseService.getClient()
+      const supabase = supabaseService.getClient(undefined, true)
       
       const { data: stats } = await supabase
         .from('orders')

@@ -10,7 +10,7 @@ class InvoiceGeneratorService {
    */
   async generateInvoice(orderId: string): Promise<Buffer> {
     try {
-      const supabase = supabaseService.getClient()
+    const supabase = supabaseService.getClient(undefined, true)
       
       // Obtener datos de la orden
       const { data: order, error } = await supabase

@@ -25,6 +25,13 @@ export default class AuthController {
 
       const supabase = supabaseService.getClient()
 
+      const roleMap: Record<string, string> = {
+        supermarket: 'SUPERMERCADO',
+        ong: 'ONG',
+        admin: 'ADMINISTRADOR',
+      }
+      const dbRole = roleMap[role] ?? 'SUPERMERCADO'
+
       // Register user with Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
@@ -43,6 +50,20 @@ export default class AuthController {
         return response.badRequest({
           message: authError.message,
         })
+      }
+
+      if (authData.user) {
+        await supabase
+          .from('profiles')
+          .upsert({
+            id: authData.user.id,
+            nombre: business_name,
+            business: business_name,
+            phone,
+            nit,
+            roles: [dbRole],
+            status: 'ACTIVO',
+          })
       }
 
       return response.created({
@@ -99,21 +120,35 @@ export default class AuthController {
         })
       }
 
-      // Get user role from metadata or use provided role
-      let userRole = authData.user?.user_metadata?.role;
-      
-      // Check if user is admin by email (this takes precedence)
-      const adminEmails = ['admin@ecosave.com', 'administrator@ecosave.com']; // Add admin emails here
-      const isAdminByEmail = adminEmails.includes(authData.user?.email || '');
-      
-      if (isAdminByEmail) {
-        userRole = 'admin'; // Force admin role for admin emails
-      } else if (!userRole && role) {
-        // If user has no role in metadata but provided one in login, use it
-        userRole = role;
-      } else if (!userRole) {
-        // If still no role, default to supermarket
-        userRole = 'supermarket';
+      const roleReverseMap: Record<string, string> = {
+        SUPERMERCADO: 'supermarket',
+        ONG: 'ong',
+        ADMINISTRADOR: 'admin',
+        DONANTE: 'supermarket',
+      }
+
+      // Preferir rol guardado en metadatos (se establece al registrarse)
+      let profileRole = (authData.user?.user_metadata?.role as string) ?? 'supermarket'
+      let profileBusiness = authData.user?.user_metadata?.business_name || 'Administrador'
+      let profilePhone = authData.user?.user_metadata?.phone || 'N/A'
+      let profileNit = authData.user?.user_metadata?.nit || 'N/A'
+
+      if (authData.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('roles, nit, phone, business')
+          .eq('id', authData.user.id)
+          .maybeSingle()
+
+        if (profile) {
+          const inferredRole = roleReverseMap[profile.roles?.[0]]
+          if (inferredRole) {
+            profileRole = inferredRole
+          }
+          profileBusiness = profile.business ?? profileBusiness
+          profilePhone = profile.phone ?? profilePhone
+          profileNit = profile.nit ?? profileNit
+        }
       }
 
       return response.ok({
@@ -122,10 +157,10 @@ export default class AuthController {
         user: {
           id: authData.user?.id,
           email: authData.user?.email,
-          businessName: authData.user?.user_metadata?.business_name || 'Administrador',
-          phone: authData.user?.user_metadata?.phone || 'N/A',
-          nit: authData.user?.user_metadata?.nit || 'N/A',
-          role: userRole,
+          businessName: profileBusiness,
+          phone: profilePhone,
+          nit: profileNit,
+          role: profileRole,
         },
       })
     } catch (error) {

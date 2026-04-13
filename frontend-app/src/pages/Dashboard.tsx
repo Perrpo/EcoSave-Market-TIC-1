@@ -1,25 +1,71 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { useNotifications } from '../context/NotificationContext';
-import './Dashboard.css';
+import React, { useState, useEffect, useMemo } from 'react'
+import { useAuth } from '../context/AuthContext'
+import { useNotifications } from '../context/NotificationContext'
+import apiService from '../services/api'
+import './Dashboard.css'
+
+const BoxIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="m21 16-3.67 2.11L12 13.5 8.67 15.89 5 13.78V8l7-4 7 4z" />
+    <path d="m5 8 7 4 7-4" />
+    <path d="M12 22V12" />
+    <path d="M7 4.5l10 5.5" />
+  </svg>
+)
+
+const AlertIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+    <line x1="12" x2="12" y1="9" y2="13" />
+    <line x1="12" x2="12.01" y1="17" y2="17" />
+  </svg>
+)
+
+const HeartIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 21s-6.4-4.35-9-8.58C.95 9.28 1.5 5.5 4.75 4.14 7.1 3.13 9.39 4 12 6.75 14.61 4 16.9 3.13 19.25 4.14 22.5 5.5 23.05 9.28 21 12.42 18.4 16.65 12 21 12 21Z" />
+  </svg>
+)
+
+const PercentIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="19" x2="5" y1="5" y2="19" />
+    <circle cx="6.5" cy="6.5" r="2.5" />
+    <circle cx="17.5" cy="17.5" r="2.5" />
+  </svg>
+)
+
+const PackageIcon = () => (
+  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3.5 7 12 12l8.5-5M12 22V12M3 7l9-5 9 5-9 5-9-5Z" />
+    <path d="m3 7 0 10 9 5 9-5 0-10" />
+  </svg>
+)
 
 interface Product {
-  id: number;
+  id: string;
+  user_id: string;
   nombre: string;
   estado: string;
   categoria: string;
   unidades: number;
   vencimiento: string;
-  color: string;
+  created_at: string;
+  updated_at?: string;
 }
 
 interface Donation {
-  id: number;
-  productName: string;
+  id: string;
+  product_id: string;
+  product_name: string;
+  product_category: string;
   quantity: number;
-  date: string;
-  ong: string;
-  status: 'completed' | 'pending';
+  user_id: string;
+  ong_id?: string;
+  status: 'available' | 'requested' | 'completed';
+  created_at: string;
+  requested_at?: string;
+  completed_at?: string;
 }
 
 const Dashboard: React.FC = () => {
@@ -29,6 +75,7 @@ const Dashboard: React.FC = () => {
   const [donations, setDonations] = useState<Donation[]>([]);
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [showDonationHistory, setShowDonationHistory] = useState(false);
+  const [activeTab, setActiveTab] = useState<'productos' | 'historial'>('productos');
   const [isLoading, setIsLoading] = useState(false);
   const [newProduct, setNewProduct] = useState({
     nombre: '',
@@ -37,213 +84,146 @@ const Dashboard: React.FC = () => {
     vencimiento: ''
   });
 
-  // Datos de ejemplo
-  const exampleProducts: Product[] = [
-    {
-      id: 1,
-      nombre: 'Pan integral',
-      estado: 'Urgente',
-      categoria: 'Panadería',
-      unidades: 25,
-      vencimiento: '2025-01-20 (HOY)',
-      color: 'rojo',
-    },
-    {
-      id: 2,
-      nombre: 'Yogur natural',
-      estado: 'Advertencia',
-      categoria: 'Lácteos',
-      unidades: 12,
-      vencimiento: '2025-01-22 (2 días)',
-      color: 'amarillo',
-    },
-    {
-      id: 3,
-      nombre: 'Manzanas',
-      estado: 'Urgente',
-      categoria: 'Frutas',
-      unidades: 8,
-      vencimiento: '2025-01-21 (1 día)',
-      color: 'rojo',
-    },
-    {
-      id: 4,
-      nombre: 'Pollo fresco',
-      estado: 'Urgente',
-      categoria: 'Carnes',
-      unidades: 5,
-      vencimiento: '2025-01-19 (VENCIDO)',
-      color: 'rojo',
-    },
-    {
-      id: 5,
-      nombre: 'Leche entera',
-      estado: 'Advertencia',
-      categoria: 'Lácteos',
-      unidades: 15,
-      vencimiento: '2025-01-25 (5 días)',
-      color: 'amarillo',
-    },
-    {
-      id: 6,
-      nombre: 'Queso fresco',
-      estado: 'Urgente',
-      categoria: 'Lácteos',
-      unidades: 3,
-      vencimiento: '2025-01-20 (HOY)',
-      color: 'rojo',
-    },
-    {
-      id: 7,
-      nombre: 'Tomates',
-      estado: 'Advertencia',
-      categoria: 'Verduras',
-      unidades: 10,
-      vencimiento: '2025-01-23 (3 días)',
-      color: 'amarillo',
-    },
-  ];
-
-  const exampleDonations: Donation[] = [
-    {
-      id: 1,
-      productName: 'Pan integral',
-      quantity: 25,
-      date: '2025-01-20',
-      ong: 'Banco de Alimentos Local',
-      status: 'completed'
-    },
-    {
-      id: 2,
-      productName: 'Manzanas',
-      quantity: 8,
-      date: '2025-01-21',
-      ong: 'Comunidad Solidaria',
-      status: 'pending'
-    },
-    {
-      id: 3,
-      productName: 'Yogur natural',
-      quantity: 12,
-      date: '2025-01-18',
-      ong: 'Fundación Esperanza',
-      status: 'completed'
-    }
-  ];
-
   useEffect(() => {
-    loadProducts();
-    loadDonations();
-  }, []);
+    if (auth.user?.id) {
+      loadProducts();
+      loadDonations();
+    }
+  }, [auth.user?.id]);
 
-  const loadProducts = () => {
-    console.log('Cargando productos...', exampleProducts.length);
-    setIsLoading(true);
-    setProducts(exampleProducts);
-    console.log('Productos cargados:', exampleProducts.length);
-    setIsLoading(false);
+  const loadProducts = async () => {
+    if (!auth.user?.id) return;
+    
+    try {
+      setIsLoading(true);
+      const response = await apiService.getProducts();
+      
+      if (response.success && response.data) {
+        setProducts(response.data);
+      } else {
+        setProducts([]);
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const loadDonations = () => {
-    setDonations(exampleDonations);
+  const loadDonations = async () => {
+    if (!auth.user?.id) return;
+    
+    try {
+      const response = await apiService.getDonations();
+      
+      if (response.success && response.data) {
+        setDonations(response.data);
+      } else {
+        setDonations([]);
+      }
+    } catch (error) {
+      console.error('Error loading donations:', error);
+      setDonations([]);
+    }
   };
 
-  const handleAddProduct = () => {
+  const handleAddProduct = async () => {
     if (!newProduct.nombre || !newProduct.categoria || !newProduct.vencimiento) {
       alert('Por favor completa todos los campos');
       return;
     }
 
-    const today = new Date();
-    const expiryDate = new Date(newProduct.vencimiento);
-    const daysUntilExpiry = Math.ceil((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    
-    let estado = 'Normal';
-    let color = 'verde';
-    let vencimientoStr = '';
-
-    if (daysUntilExpiry < 0) {
-      estado = 'Vencido';
-      color = 'rojo';
-      vencimientoStr = `${newProduct.vencimiento} (VENCIDO)`;
-    } else if (daysUntilExpiry === 0) {
-      estado = 'Urgente';
-      color = 'rojo';
-      vencimientoStr = `${newProduct.vencimiento} (HOY)`;
-    } else if (daysUntilExpiry <= 2) {
-      estado = 'Urgente';
-      color = 'rojo';
-      vencimientoStr = `${newProduct.vencimiento} (${daysUntilExpiry} días)`;
-    } else if (daysUntilExpiry <= 5) {
-      estado = 'Advertencia';
-      color = 'amarillo';
-      vencimientoStr = `${newProduct.vencimiento} (${daysUntilExpiry} días)`;
-    } else {
-      vencimientoStr = `${newProduct.vencimiento} (${daysUntilExpiry} días)`;
+    if (!auth.user?.id) {
+      alert('Error: usuario no autenticado');
+      return;
     }
 
-    const product: Product = {
-      id: products.length + 1,
-      nombre: newProduct.nombre,
-      estado,
-      categoria: newProduct.categoria,
-      unidades: newProduct.unidades,
-      vencimiento: vencimientoStr,
-      color
-    };
-
-    setProducts([...products, product]);
-    
-    // Send notification
-    addNotification({
-      type: 'product_added',
-      title: 'Nuevo Producto Agregado',
-      message: `${product.nombre} (${product.unidades} unidades) ha sido agregado al inventario.`,
-    });
-
-    // Send notification if product is expiring soon
-    if (daysUntilExpiry <= 3) {
-      addNotification({
-        type: 'product_expiring',
-        title: 'Producto Próximo a Vencer',
-        message: `${product.nombre} vence en ${daysUntilExpiry} días.`,
+    try {
+      const response = await apiService.createProduct({
+        nombre: newProduct.nombre,
+        categoria: newProduct.categoria,
+        unidades: newProduct.unidades,
+        vencimiento: newProduct.vencimiento,
       });
-    }
 
-    setNewProduct({ nombre: '', categoria: '', unidades: 1, vencimiento: '' });
-    setShowAddProduct(false);
+      if (response.success) {
+        // Send notification
+        addNotification({
+          type: 'product_added',
+          title: 'Nuevo Producto Agregado',
+          message: `${newProduct.nombre} (${newProduct.unidades} unidades) ha sido agregado al inventario.`,
+        });
+
+        // Reload products
+        await loadProducts();
+
+        // Reset form
+        setNewProduct({ nombre: '', categoria: '', unidades: 1, vencimiento: '' });
+        setShowAddProduct(false);
+      } else {
+        alert('Error al crear producto: ' + response.message);
+      }
+    } catch (error) {
+      console.error('Error creating product:', error);
+      alert('Error al crear producto. Inténtalo de nuevo.');
+    }
   };
 
-  const handleDonate = (productId: number) => {
+  const handleDonate = async (productId: string) => {
+    if (!auth.user?.id) {
+      alert('Error: usuario no autenticado');
+      return;
+    }
+
     const product = products.find(p => p.id === productId);
-    if (product) {
-      const donation: Donation = {
-        id: donations.length + 1,
-        productName: product.nombre,
+    if (!product) {
+      alert('Producto no encontrado');
+      return;
+    }
+
+    try {
+      const response = await apiService.createDonation({
+        product_id: productId,
         quantity: product.unidades,
-        date: new Date().toISOString().split('T')[0],
-        ong: 'ONG Seleccionada',
-        status: 'pending'
-      };
-      setDonations([...donations, donation]);
-      
-      // Send notification
-      addNotification({
-        type: 'donation_completed',
-        title: 'Donación Completada',
-        message: `${product.nombre} (${product.unidades} unidades) ha sido donado exitosamente.`,
+        status: 'available'
       });
-      
-      setProducts(products.filter(p => p.id !== productId));
+
+      if (response.success) {
+        // Send notification
+        addNotification({
+          type: 'donation_completed',
+          title: 'Donación Completada',
+          message: `${product.nombre} (${product.unidades} unidades) ha sido donado exitosamente.`,
+        });
+        
+        // Reload products and donations
+        await loadProducts();
+        await loadDonations();
+      } else {
+        alert('Error al crear donación: ' + response.message);
+      }
+    } catch (error) {
+      console.error('Error creating donation:', error);
+      alert('Error al crear donación. Inténtalo de nuevo.');
     }
   };
 
-  const handleDiscount = (productId: number) => {
-    setProducts(products.map(p => 
-      p.id === productId 
-        ? { ...p, estado: 'Descuento', color: 'azul' }
-        : p
-    ));
+  const handleDiscount = async (productId: string) => {
+    const product = products.find(p => p.id === productId);
+    if (!product) return;
+
+    try {
+      const response = await apiService.updateProduct(productId, {
+        estado: 'Descuento'
+      });
+
+      if (response.success) {
+        await loadProducts(); // Reload to see the updated state
+      } else {
+        alert('Error al actualizar producto: ' + response.message);
+      }
+    } catch (error) {
+      console.error('Error updating product:', error);
+      alert('Error al actualizar producto. Inténtalo de nuevo.');
+    }
   };
 
   // Estadísticas dinámicas
@@ -267,124 +247,177 @@ const Dashboard: React.FC = () => {
     return products.filter((p) => p.estado === 'Descuento').length;
   }, [products]);
 
+  const today = new Date();
+  const formattedDate = today.toLocaleDateString('es-CO', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+
+  const getExpiryClass = (vencimiento: string) => {
+    const diffDays = Math.ceil((new Date(vencimiento).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    if (diffDays <= 1) return 'red';
+    if (diffDays <= 3) return 'orange';
+    return 'green';
+  };
+
   return (
     <div className="dashboard">
       <div className="dashboard-header">
         <div>
           <h1 className="main-title">Dashboard {auth.user?.role === 'ong' ? 'ONG' : auth.user?.role === 'admin' ? 'Admin' : 'Supermercado'}</h1>
-          <p className="subtitle">Gestiona tus productos y donaciones</p>
+          <p className="subtitle strong">Gestiona tus productos y donaciones</p>
+          <p className="subtitle muted small">{formattedDate}</p>
         </div>
-        <div className="user-info">
-          <div>
-            <b>{auth.user?.businessName || 'EcoSave Market'}</b>
-            <div className="email">{auth.user?.email || 'demo@ecosave.com'}</div>
+        <div className="header-meta">
+          <div className="user-chip stacked">
+            <span className="chip-title">{auth.user?.businessName || 'EcoSave Market'}</span>
+            <span className="chip-sub">{auth.user?.email || 'demo@ecosave.com'}</span>
           </div>
-          <button className="logout" onClick={auth.logout}>
-            Salir
-          </button>
         </div>
       </div>
 
       <div className="stats-row">
         <div className="stat-box">
-          <span className="stat-icon stat-cube">🧊</span>
+          <span className="stat-icon"><BoxIcon /></span>
           <div>
-            <div className="stat-title">Total Productos</div>
             <div className="stat-value">{totalProducts}</div>
+            <div className="stat-title">Total Productos</div>
           </div>
         </div>
         <div className="stat-box">
-          <span className="stat-icon stat-alert">⚠️</span>
+          <span className="stat-icon"><AlertIcon /></span>
           <div>
-            <div className="stat-title">Expiran Pronto</div>
             <div className="stat-value">{urgentProducts}</div>
+            <div className="stat-title">Expiran Pronto</div>
           </div>
         </div>
         <div className="stat-box">
-          <span className="stat-icon stat-heart">💖</span>
+          <span className="stat-icon"><HeartIcon /></span>
           <div>
-            <div className="stat-title">Donados</div>
             <div className="stat-value">{donatedProducts}</div>
+            <div className="stat-title">Donados</div>
           </div>
         </div>
         <div className="stat-box">
-          <span className="stat-icon stat-percent">%</span>
+          <span className="stat-icon"><PercentIcon /></span>
           <div>
-            <div className="stat-title">Con Descuento</div>
             <div className="stat-value">{discountProducts}</div>
+            <div className="stat-title">Con Descuento</div>
           </div>
         </div>
       </div>
 
-      <div className="action-buttons">
-        <button 
-          className="btn-primary" 
-          onClick={() => setShowAddProduct(true)}
-        >
-          ➕ Agregar Producto
-        </button>
-        <button 
-          className="btn-secondary" 
-          onClick={() => setShowDonationHistory(true)}
-        >
-          📋 Historial de Donaciones
-        </button>
-      </div>
-
-      <div className="card">
-        <h2 className="main-title">Productos Próximos a Vencer</h2>
-        <p className="subtitle">Productos que requieren acción inmediata</p>
-        <div className="product-list">
-          {isLoading ? (
-            <div className="loading-message">Cargando productos...</div>
-          ) : products.length === 0 ? (
-            <div className="no-products">
-              <div className="no-products-icon">📦</div>
-              <p>No hay productos registrados</p>
-              <p className="no-products-desc">
-                Agrega productos para comenzar a gestionar tu inventario
-              </p>
-            </div>
-          ) : (
-            products.map((p) => (
-              <div key={p.id} className="product">
-                <div className="product-info">
-                  <span className={`dot ${p.color}`}></span>
-                  <span className="product-name">{p.nombre}</span>
-                  <span className={`badge ${p.estado}`}>{p.estado}</span>
-                  <div className="desc">
-                    {p.categoria} • {p.unidades} unidades
-                  </div>
-                  <div className="desc">
-                    <span className="calendar-icon">📅</span>
-                    Vence: {p.vencimiento}
-                  </div>
-                </div>
-                <div className="actions">
-                  <button 
-                    className="donar" 
-                    onClick={() => handleDonate(p.id)}
-                    disabled={p.estado === 'Donado' || p.estado === 'Vencido'}
-                  >
-                    <span>♡</span> Donar
-                  </button>
-                  <button 
-                    className="descuento" 
-                    onClick={() => handleDiscount(p.id)}
-                    disabled={p.estado === 'Donado' || p.estado === 'Descuento'}
-                  >
-                    <span>%</span> Descuento
-                  </button>
-                </div>
+      <div className="side-grid">
+        <div className="card">
+          <div className="tab-bar">
+            <button
+              className={`tab-btn ${activeTab === 'productos' ? 'active' : ''}`}
+              onClick={() => {
+                setActiveTab('productos');
+                setShowAddProduct(true);
+              }}
+            >
+              Agregar Producto
+            </button>
+            <button
+              className={`tab-btn ${activeTab === 'historial' ? 'active' : ''}`}
+              onClick={() => {
+                setActiveTab('historial');
+                setShowDonationHistory(true);
+              }}
+            >
+              Historial de Donaciones
+            </button>
+          </div>
+          <div className="content-divider" />
+          <div className="table-wrap">
+            {isLoading ? (
+              <div className="loading-message">Cargando productos...</div>
+            ) : products.length === 0 ? (
+              <div className="no-products">
+                <PackageIcon />
+                <p className="empty-title">No hay productos registrados</p>
+                <p className="empty-sub">Agrega productos para comenzar a gestionar tu inventario</p>
+                <button className="btn-primary" onClick={() => setShowAddProduct(true)}>Agregar primer producto</button>
               </div>
-            ))
-          )}
+            ) : (
+              <table className="products-table">
+                <thead>
+                  <tr>
+                    <th>Producto</th>
+                    <th>Categoría</th>
+                    <th>Unidades</th>
+                    <th>Vencimiento</th>
+                    <th>Estado</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {products.map((p) => (
+                    <tr key={p.id}>
+                      <td>{p.nombre}</td>
+                      <td>{p.categoria}</td>
+                      <td>{p.unidades}</td>
+                      <td>
+                        <span className={`tag ${getExpiryClass(p.vencimiento)}`}>
+                          {new Date(p.vencimiento).toLocaleDateString()}
+                        </span>
+                      </td>
+                      <td>
+                        <span className={`tag ${p.estado === 'Urgente' || p.estado === 'Vencido' ? 'red' : p.estado === 'Advertencia' ? 'orange' : 'green'}`}>
+                          {p.estado}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="actions-inline">
+                          <button className="donar" onClick={() => handleDonate(p.id)} disabled={p.estado === 'Donado' || p.estado === 'Vencido'}>
+                            Donar
+                          </button>
+                          <button className="descuento" onClick={() => handleDiscount(p.id)} disabled={p.estado === 'Donado' || p.estado === 'Descuento'}>
+                            Descuento
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+
+        <div className="notif-list">
+          <div className="card alert-panel">
+            <h3 className="main-title">Alertas de vencimiento</h3>
+            <div className="subtitle">Productos que requieren acción</div>
+            <div className="notif-list">
+              {products.filter(p => getExpiryClass(p.vencimiento) !== 'green').map(p => (
+                <div key={p.id} className="notif-card">
+                  <div className="stat-title">{p.categoria}</div>
+                  <div className="stat-value">{p.nombre}</div>
+                  <div className={`tag ${getExpiryClass(p.vencimiento)}`}>{new Date(p.vencimiento).toLocaleDateString()}</div>
+                </div>
+              ))}
+              {products.filter(p => getExpiryClass(p.vencimiento) !== 'green').length === 0 && (
+                <div className="subtitle">Sin alertas por ahora</div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
+
+      <button className="fab" onClick={() => setShowAddProduct(true)} aria-label="Agregar producto">+</button>
 
       {/* Modal para agregar producto */}
       {showAddProduct && (
-        <div className="modal-overlay">
+        <div
+          className="modal-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowAddProduct(false)
+          }}
+        >
           <div className="modal">
             <h3>Agregar Nuevo Producto</h3>
             <div className="form-group">
@@ -443,9 +476,19 @@ const Dashboard: React.FC = () => {
 
       {/* Modal para historial de donaciones */}
       {showDonationHistory && (
-        <div className="modal-overlay">
+        <div
+          className="modal-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowDonationHistory(false)
+          }}
+        >
           <div className="modal modal-large">
-            <h3>Historial de Donaciones</h3>
+            <div className="modal-header">
+              <h3>Historial de Donaciones</h3>
+              <button className="icon-btn" onClick={() => setShowDonationHistory(false)} aria-label="Cerrar modal">
+                ×
+              </button>
+            </div>
             <div className="donation-list">
               {donations.length === 0 ? (
                 <p>No hay donaciones registradas</p>
@@ -453,10 +496,10 @@ const Dashboard: React.FC = () => {
                 donations.map((donation) => (
                   <div key={donation.id} className="donation-item">
                     <div className="donation-info">
-                      <h4>{donation.productName}</h4>
+                      <h4>{donation.product_name}</h4>
                       <p>Cantidad: {donation.quantity} unidades</p>
-                      <p>Fecha: {donation.date}</p>
-                      <p>ONG: {donation.ong}</p>
+                      <p>Fecha: {new Date(donation.created_at).toLocaleDateString()}</p>
+                      <p>ONG: {donation.ong_id || 'Pendiente'}</p>
                     </div>
                     <div className="donation-status">
                       <span className={`badge ${donation.status}`}>
@@ -480,3 +523,4 @@ const Dashboard: React.FC = () => {
 };
 
 export default Dashboard;
+
