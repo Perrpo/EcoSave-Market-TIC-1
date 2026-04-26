@@ -24,10 +24,6 @@ router.group(() => {
     return { status: 'ok' }
   })
 
-  // Supabase connection test
-  router.get('/supabase/test', '#controllers/http/supabase_test_controller.testConnection')
-  router.get('/supabase/info', '#controllers/http/supabase_test_controller.info')
-
   // Users
   router.resource('users', '#controllers/http/user_controller').apiOnly()
   

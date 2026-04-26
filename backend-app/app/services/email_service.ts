@@ -2,6 +2,8 @@ import nodemailer from 'nodemailer'
 import type { Transporter } from 'nodemailer'
 import invoiceGeneratorService from '#services/invoice_generator_service'
 import supabaseService from '#services/supabase_service'
+import OrderRepository from '#repositories/order_repository'
+import EmailLogRepository from '#repositories/email_log_repository'
 
 /**
  * Servicio para envío de emails
@@ -46,14 +48,11 @@ class EmailService {
         throw new Error('Email transporter not initialized')
       }
 
-      const supabase = supabaseService.getClient(undefined, true)
+      const client = supabaseService.getClient(undefined, true)
+      const orderRepository = new OrderRepository(client)
       
       // Obtener datos de la orden
-      const { data: order, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('id', orderId)
-        .single()
+      const { data: order, error } = await orderRepository.findById(orderId)
 
       if (error || !order) {
         throw new Error('Orden no encontrada')
@@ -183,13 +182,10 @@ class EmailService {
       await this.initTransporter()
       if (!this.transporter) return false
 
-      const supabase = supabaseService.getClient(undefined, true)
+      const client = supabaseService.getClient(undefined, true)
+      const orderRepository = new OrderRepository(client)
       
-      const { data: order, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('id', orderId)
-        .single()
+      const { data: order, error } = await orderRepository.findById(orderId)
 
       if (error || !order) return false
 
@@ -297,13 +293,13 @@ class EmailService {
     emailType: string
   ): Promise<void> {
     try {
-      const supabase = supabaseService.getClient(undefined, true)
+      const client = supabaseService.getClient(undefined, true)
+      const emailLogRepository = new EmailLogRepository(client)
       
-      await supabase.from('email_logs').insert({
+      await emailLogRepository.create({
         order_id: orderId,
         recipient,
         email_type: emailType,
-        sent_at: new Date().toISOString(),
         status: 'sent',
       })
     } catch (error) {

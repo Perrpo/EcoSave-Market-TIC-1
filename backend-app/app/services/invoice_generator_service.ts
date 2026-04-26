@@ -1,5 +1,6 @@
 import PDFDocument from 'pdfkit'
 import supabaseService from '#services/supabase_service'
+import OrderRepository from '#repositories/order_repository'
 
 /**
  * Servicio para generación de facturas en PDF
@@ -10,14 +11,11 @@ class InvoiceGeneratorService {
    */
   async generateInvoice(orderId: string): Promise<Buffer> {
     try {
-    const supabase = supabaseService.getClient(undefined, true)
+      const client = supabaseService.getClient(undefined, true)
+      const orderRepository = new OrderRepository(client)
       
       // Obtener datos de la orden
-      const { data: order, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('id', orderId)
-        .single()
+      const { data: order, error } = await orderRepository.findById(orderId)
 
       if (error || !order) {
         throw new Error('Orden no encontrada')

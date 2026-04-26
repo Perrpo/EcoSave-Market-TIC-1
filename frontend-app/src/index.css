@@ -1,21 +1,24 @@
 :root {
   color-scheme: light;
-  --primary: #1a7a4a;
-  --primary-strong: #14613b;
-  --accent: #e07b39;
-  --bg: #f7f6f2;
+  /* ── Paleta EcoSave Market ── */
+  --primary: #2D5A27;          /* Verde Ecológico */
+  --primary-strong: #1F3E1B;   /* Verde oscuro hover */
+  --accent: #F58220;           /* Naranja Vibrante */
+  --cyan: #00A99D;             /* Cian Tecnológico */
+  --lime: #8DC63F;             /* Verde Lima */
+  --bg: #F8F9FA;               /* Blanco Humo */
   --card: #ffffff;
-  --ink: #4a4a48;
-  --muted: #6f6f6c;
-  --stroke: #e6e1d9;
-  --success: #24b26e;
-  --warning: #e07b39;
+  --ink: #333333;              /* Gris Carbón */
+  --muted: #6c757d;
+  --stroke: #E9ECEF;           /* Gris Plata */
+  --success: #2D5A27;
+  --warning: #F58220;
   --danger: #c52233;
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 18px;
-  --shadow-1: 0 12px 30px rgba(16, 40, 24, 0.12);
-  --shadow-2: 0 20px 60px rgba(16, 40, 24, 0.18);
+  --shadow-1: 0 12px 30px rgba(45, 90, 39, 0.10);
+  --shadow-2: 0 20px 60px rgba(45, 90, 39, 0.16);
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -31,11 +34,11 @@
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
-    --bg: #0f1511;
-    --card: #121a15;
-    --ink: #e6ede8;
-    --muted: #9fb1a7;
-    --stroke: #1f2a23;
+    --bg: #1a1f1a;
+    --card: #222922;
+    --ink: #F8F9FA;
+    --muted: #a0b0a4;
+    --stroke: #2e382e;
     --shadow-1: 0 12px 30px rgba(0, 0, 0, 0.45);
     --shadow-2: 0 20px 60px rgba(0, 0, 0, 0.5);
   }
@@ -84,11 +87,12 @@ img {
   padding: 12px 16px;
   font-weight: 700;
   cursor: pointer;
-  transition: transform 120ms ease, box-shadow 120ms ease;
+  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
 }
 
 .btn-primary:hover {
   transform: translateY(-1px);
+  background: var(--primary-strong);
   box-shadow: var(--shadow-1);
 }
 
@@ -127,13 +131,13 @@ img {
 }
 
 .badge.success {
-  background: #edf9f1;
-  color: #1a7a4a;
+  background: #e8f5e4;
+  color: #2D5A27;
 }
 
 .badge.warning {
-  background: #fff4ec;
-  color: #c65a13;
+  background: #fef0e0;
+  color: #c06a10;
 }
 
 .badge.danger {
@@ -145,7 +149,7 @@ img {
   position: fixed;
   bottom: 24px;
   right: 24px;
-  background: var(--primary);
+  background: var(--accent);
   color: #fff;
   border: none;
   border-radius: 50%;
@@ -156,6 +160,12 @@ img {
   font-size: 26px;
   box-shadow: var(--shadow-2);
   cursor: pointer;
+  transition: transform 120ms ease, background 120ms ease;
+}
+
+.fab:hover {
+  transform: scale(1.05);
+  background: #d96f15;
 }
 
 @media (max-width: 900px) {

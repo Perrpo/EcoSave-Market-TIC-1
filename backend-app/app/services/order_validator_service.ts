@@ -1,4 +1,6 @@
 import supabaseService from '#services/supabase_service'
+import OrderRepository from '#repositories/order_repository'
+import ProductRepository from '#repositories/product_repository'
 
 /**
  * Interfaz para productos en órdenes
@@ -29,14 +31,11 @@ class OrderValidatorService {
     const warnings: string[] = []
 
     try {
-    const supabase = supabaseService.getClient(undefined, true)
+      const client = supabaseService.getClient(undefined, true)
+      const orderRepository = new OrderRepository(client)
       
       // Obtener orden de Supabase
-      const { data: order, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('id', orderId)
-        .single()
+      const { data: order, error } = await orderRepository.findById(orderId)
 
       if (error || !order) {
         errors.push('Orden no encontrada')
@@ -107,14 +106,11 @@ class OrderValidatorService {
     const warnings: string[] = []
 
     try {
-    const supabase = supabaseService.getClient(undefined, true)
+      const client = supabaseService.getClient(undefined, true)
+      const productRepository = new ProductRepository(client)
 
       for (const product of products) {
-        const { data: productData, error } = await supabase
-          .from('products')
-          .select('stock, name')
-          .eq('id', product.product_id)
-          .single()
+        const { data: productData, error } = await productRepository.findById(product.product_id)
 
         if (error || !productData) {
           errors.push(`Producto ${product.product_name} no encontrado`)
@@ -167,15 +163,13 @@ class OrderValidatorService {
    */
   async markAsValidated(orderId: string): Promise<boolean> {
     try {
-    const supabase = supabaseService.getClient(undefined, true)
+      const client = supabaseService.getClient(undefined, true)
+      const orderRepository = new OrderRepository(client)
       
-      const { error } = await supabase
-        .from('orders')
-        .update({ 
-          status: 'validated',
-          validated_at: new Date().toISOString()
-        })
-        .eq('id', orderId)
+      const { error } = await orderRepository.update(orderId, { 
+        status: 'validated',
+        validated_at: new Date().toISOString()
+      })
 
       return !error
     } catch (error) {

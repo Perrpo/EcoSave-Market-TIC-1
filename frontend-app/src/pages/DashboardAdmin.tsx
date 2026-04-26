@@ -124,7 +124,7 @@ const DashboardAdmin: React.FC = () => {
           max-width: 1200px;
           margin: 0 auto;
           padding-bottom: 2rem;
-          background: #1a1a2e;
+          background: #333333;
           min-height: 100vh;
           border-radius: 12px;
           padding: 2rem;
@@ -141,15 +141,15 @@ const DashboardAdmin: React.FC = () => {
           font-size: 2rem;
           font-weight: 700;
           margin-bottom: 0.2rem;
-          background: linear-gradient(45deg, #00d4ff, #7c3aed);
+          background: linear-gradient(45deg, #00A99D, #8DC63F);
           -webkit-background-clip: text;
           background-clip: text;
           color: transparent;
-          filter: drop-shadow(0 2px 14px rgba(0, 212, 255, 0.3));
+          filter: drop-shadow(0 2px 14px rgba(0, 169, 157, 0.3));
         }
 
         .dashboard-header .subtitle {
-          color: #94a3b8;
+          color: #a0b0a4;
           font-size: 1.1rem;
         }
 
@@ -160,23 +160,23 @@ const DashboardAdmin: React.FC = () => {
         }
 
         .user-info .email {
-          color: #94a3b8;
+          color: #a0b0a4;
           font-size: 0.95rem;
         }
 
         .logout {
-          background: #2d3748;
-          border: 1px solid #4a5568;
+          background: #3d4a3d;
+          border: 1px solid #4d5c4d;
           border-radius: 8px;
           padding: 0.5rem 1.2rem;
           font-weight: 500;
           cursor: pointer;
-          color: #e2e8f0;
+          color: #F8F9FA;
           transition: all 160ms ease;
         }
 
         .logout:hover {
-          background: #4a5568;
+          background: #4d5c4d;
           box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
         }
 
@@ -187,15 +187,21 @@ const DashboardAdmin: React.FC = () => {
         }
 
         .stat-box {
-          background: #2d3748;
+          background: #3d4a3d;
           border-radius: 14px;
           box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-          border: 1px solid #4a5568;
+          border: 1px solid #4d5c4d;
           padding: 1.2rem 2rem;
           display: flex;
           align-items: center;
           min-width: 180px;
           gap: 1rem;
+          transition: transform 180ms ease, box-shadow 180ms ease;
+        }
+
+        .stat-box:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
         }
 
         .stat-icon {
@@ -204,37 +210,37 @@ const DashboardAdmin: React.FC = () => {
         }
 
         .stat-cube {
-          color: #00d4ff;
+          color: #00A99D;
         }
 
         .stat-heart {
-          color: #ef4444;
+          color: #F58220;
         }
 
         .stat-alert {
-          color: #f59e0b;
+          color: #8DC63F;
         }
 
         .stat-percent {
-          color: #a855f7;
+          color: #00A99D;
         }
 
         .stat-title {
-          color: #94a3b8;
+          color: #a0b0a4;
           font-size: 1rem;
         }
 
         .stat-value {
           font-size: 1.3rem;
           font-weight: 700;
-          color: #f1f5f9;
+          color: #F8F9FA;
         }
 
         .card {
-          background: #2d3748;
+          background: #3d4a3d;
           border-radius: 14px;
           box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-          border: 1px solid #4a5568;
+          border: 1px solid #4d5c4d;
           padding: 2rem;
           margin-top: 1rem;
         }
@@ -243,11 +249,11 @@ const DashboardAdmin: React.FC = () => {
           font-size: 1.3rem;
           font-weight: 600;
           margin-bottom: 0.2rem;
-          color: #f1f5f9;
+          color: #F8F9FA;
         }
 
         .card .subtitle {
-          color: #94a3b8;
+          color: #a0b0a4;
           font-size: 1rem;
           margin-bottom: 1.2rem;
         }
@@ -259,7 +265,7 @@ const DashboardAdmin: React.FC = () => {
         }
 
         .action-section h3 {
-          color: #f1f5f9;
+          color: #F8F9FA;
           margin-bottom: 1rem;
           font-size: 1.1rem;
         }
@@ -271,22 +277,27 @@ const DashboardAdmin: React.FC = () => {
         }
 
         .user-item {
-          background: #1e293b;
+          background: #2a352a;
           border-radius: 8px;
           padding: 1rem;
           display: flex;
           justify-content: space-between;
           align-items: center;
-          border: 1px solid #475569;
+          border: 1px solid #4d5c4d;
+          transition: border-color 160ms ease;
+        }
+
+        .user-item:hover {
+          border-color: #00A99D;
         }
 
         .user-name {
           font-weight: 500;
-          color: #f1f5f9;
+          color: #F8F9FA;
         }
 
         .user-email {
-          color: #94a3b8;
+          color: #a0b0a4;
           font-size: 0.9rem;
         }
 
@@ -298,22 +309,22 @@ const DashboardAdmin: React.FC = () => {
         }
 
         .badge.active {
-          background: #059669;
-          color: #d1fae5;
+          background: #2D5A27;
+          color: #e8f5e4;
         }
 
         .badge.success {
-          background: #059669;
-          color: #d1fae5;
+          background: #2D5A27;
+          color: #e8f5e4;
         }
 
         .badge.pending {
-          background: #d97706;
-          color: #fef3c7;
+          background: #F58220;
+          color: #fef0e0;
         }
 
         .action-btn {
-          background: #3b82f6;
+          background: #00A99D;
           color: white;
           border: none;
           padding: 0.4rem 1rem;
@@ -324,7 +335,7 @@ const DashboardAdmin: React.FC = () => {
         }
 
         .action-btn:hover {
-          background: #2563eb;
+          background: #008a80;
         }
 
         .donation-list {
@@ -334,13 +345,18 @@ const DashboardAdmin: React.FC = () => {
         }
 
         .donation-item {
-          background: #1e293b;
+          background: #2a352a;
           border-radius: 8px;
           padding: 1rem;
           display: flex;
           justify-content: space-between;
           align-items: center;
-          border: 1px solid #475569;
+          border: 1px solid #4d5c4d;
+          transition: border-color 160ms ease;
+        }
+
+        .donation-item:hover {
+          border-color: #8DC63F;
         }
 
         .donation-info {
@@ -351,16 +367,16 @@ const DashboardAdmin: React.FC = () => {
 
         .donation-name {
           font-weight: 500;
-          color: #f1f5f9;
+          color: #F8F9FA;
         }
 
         .donation-from {
-          color: #94a3b8;
+          color: #a0b0a4;
           font-size: 0.9rem;
         }
 
         .donation-desc {
-          color: #94a3b8;
+          color: #a0b0a4;
           font-size: 0.85rem;
         }
 

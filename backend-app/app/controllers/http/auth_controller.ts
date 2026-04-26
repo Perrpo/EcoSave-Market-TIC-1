@@ -1,7 +1,14 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import supabaseService from '#services/supabase_service'
+import AuthService from '#services/auth_service'
 
 export default class AuthController {
+  private authService: AuthService
+
+  constructor() {
+    this.authService = new AuthService()
+  }
+
   /**
    * Register a new user
    */
@@ -23,59 +30,24 @@ export default class AuthController {
         })
       }
 
-      const supabase = supabaseService.getClient()
-
-      const roleMap: Record<string, string> = {
-        supermarket: 'SUPERMERCADO',
-        ong: 'ONG',
-        admin: 'ADMINISTRADOR',
-      }
-      const dbRole = roleMap[role] ?? 'SUPERMERCADO'
-
-      // Register user with Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      const { data: userData, error } = await this.authService.register({
         email,
         password,
-        options: {
-          data: {
-            business_name,
-            phone,
-            nit,
-            role,
-          },
-        },
+        business_name,
+        phone,
+        nit,
+        role
       })
 
-      if (authError) {
+      if (error) {
         return response.badRequest({
-          message: authError.message,
+          message: error.message,
         })
-      }
-
-      if (authData.user) {
-        await supabase
-          .from('profiles')
-          .upsert({
-            id: authData.user.id,
-            nombre: business_name,
-            business: business_name,
-            phone,
-            nit,
-            roles: [dbRole],
-            status: 'ACTIVO',
-          })
       }
 
       return response.created({
         message: 'User registered successfully',
-        user: {
-          id: authData.user?.id,
-          email: authData.user?.email,
-          business_name,
-          phone,
-          nit,
-          role,
-        },
+        user: userData,
       })
     } catch (error) {
       return response.internalServerError({
@@ -106,62 +78,22 @@ export default class AuthController {
         })
       }
 
-      const supabase = supabaseService.getClient()
-
-      // Sign in with Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      const { data: loginData, error } = await this.authService.login({
         email,
         password,
+        role
       })
 
-      if (authError) {
+      if (error) {
         return response.unauthorized({
-          message: authError.message,
+          message: error.message,
         })
-      }
-
-      const roleReverseMap: Record<string, string> = {
-        SUPERMERCADO: 'supermarket',
-        ONG: 'ong',
-        ADMINISTRADOR: 'admin',
-        DONANTE: 'supermarket',
-      }
-
-      // Preferir rol guardado en metadatos (se establece al registrarse)
-      let profileRole = (authData.user?.user_metadata?.role as string) ?? 'supermarket'
-      let profileBusiness = authData.user?.user_metadata?.business_name || 'Administrador'
-      let profilePhone = authData.user?.user_metadata?.phone || 'N/A'
-      let profileNit = authData.user?.user_metadata?.nit || 'N/A'
-
-      if (authData.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('roles, nit, phone, business')
-          .eq('id', authData.user.id)
-          .maybeSingle()
-
-        if (profile) {
-          const inferredRole = roleReverseMap[profile.roles?.[0]]
-          if (inferredRole) {
-            profileRole = inferredRole
-          }
-          profileBusiness = profile.business ?? profileBusiness
-          profilePhone = profile.phone ?? profilePhone
-          profileNit = profile.nit ?? profileNit
-        }
       }
 
       return response.ok({
         message: 'Login successful',
-        token: authData.session?.access_token,
-        user: {
-          id: authData.user?.id,
-          email: authData.user?.email,
-          businessName: profileBusiness,
-          phone: profilePhone,
-          nit: profileNit,
-          role: profileRole,
-        },
+        token: loginData?.token,
+        user: loginData?.user,
       })
     } catch (error) {
       return response.internalServerError({
@@ -176,8 +108,6 @@ export default class AuthController {
    */
   async logout({ request, response }: HttpContext) {
     try {
-      const supabase = supabaseService.getClient()
-
       // Get token from Authorization header
       const authHeader = request.header('Authorization')
       if (!authHeader) {
@@ -186,8 +116,8 @@ export default class AuthController {
         })
       }
 
-      // Sign out from Supabase
-      const { error } = await supabase.auth.signOut()
+      const accessToken = supabaseService.getAccessToken(authHeader)
+      const { error } = await this.authService.logout(accessToken)
 
       if (error) {
         return response.badRequest({

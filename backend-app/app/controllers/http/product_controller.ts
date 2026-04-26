@@ -1,7 +1,14 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import supabaseService from '#services/supabase_service'
+import ProductService from '#services/product_service'
 
 export default class ProductController {
+  private productService: ProductService
+
+  constructor() {
+    this.productService = new ProductService()
+  }
+
   /**
    * Lista todos los productos del usuario autenticado
    * GET /api/v1/products
@@ -20,26 +27,16 @@ export default class ProductController {
         })
       }
 
-      const supabase = supabaseService.getClient(accessToken, true)
-
-      let query = supabase
-        .from('products')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .range(offset, offset + Number(limit) - 1)
-
-      if (status) {
-        query = query.eq('estado', status)
-      }
-
-      const { data: products, error } = await query
+      const { data: products, error } = await this.productService.getProductsForUser(
+        accessToken,
+        userId,
+        Number(limit),
+        Number(offset),
+        status as string | undefined
+      )
 
       if (error) {
         console.error('Supabase products error', error)
-      }
-
-      if (error) {
         return response.badRequest({
           success: false,
           message: 'Error al obtener productos',
@@ -89,40 +86,11 @@ export default class ProductController {
         })
       }
 
-      // Calcular estado automáticamente si no se proporciona
-      if (!productData.estado) {
-        const today = new Date()
-        const expiryDate = new Date(productData.vencimiento)
-        const daysUntilExpiry = Math.ceil((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-
-        let estado = 'Normal'
-
-        if (daysUntilExpiry < 0) {
-          estado = 'Vencido'
-        } else if (daysUntilExpiry <= 2) {
-          estado = 'Urgente'
-        } else if (daysUntilExpiry <= 5) {
-          estado = 'Advertencia'
-        }
-
-        productData.estado = estado
-      }
-
-      const supabase = supabaseService.getClient(accessToken, true)
-
-      const { data: product, error } = await supabase
-        .from('products')
-        .insert({
-          user_id: userId,
-          nombre: productData.nombre,
-          categoria: productData.categoria,
-          unidades: productData.unidades,
-          vencimiento: productData.vencimiento,
-          estado: productData.estado,
-          created_at: new Date().toISOString(),
-        })
-        .select()
-        .single()
+      const { data: product, error } = await this.productService.createProduct(
+        accessToken,
+        userId,
+        productData
+      )
 
       if (error) {
         return response.badRequest({
@@ -154,13 +122,8 @@ export default class ProductController {
     try {
       const { id } = params
       const accessToken = supabaseService.getAccessToken(request.header('Authorization'))
-      const supabase = supabaseService.getClient(accessToken)
 
-      const { data: product, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('id', id)
-        .single()
+      const { data: product, error } = await this.productService.getProductById(accessToken, id)
 
       if (error || !product) {
         return response.notFound({
@@ -198,17 +161,8 @@ export default class ProductController {
       ])
 
       const accessToken = supabaseService.getAccessToken(request.header('Authorization'))
-      const supabase = supabaseService.getClient(accessToken)
 
-      const { data: product, error } = await supabase
-        .from('products')
-        .update({
-          ...updateData,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', id)
-        .select()
-        .single()
+      const { data: product, error } = await this.productService.updateProduct(accessToken, id, updateData)
 
       if (error || !product) {
         return response.notFound({
@@ -239,12 +193,8 @@ export default class ProductController {
     try {
       const { id } = params
       const accessToken = supabaseService.getAccessToken(request.header('Authorization'))
-      const supabase = supabaseService.getClient(accessToken)
 
-      const { error } = await supabase
-        .from('products')
-        .delete()
-        .eq('id', id)
+      const { error } = await this.productService.deleteProduct(accessToken, id)
 
       if (error) {
         return response.badRequest({
@@ -274,12 +224,8 @@ export default class ProductController {
   async getAvailable({ request, response }: HttpContext) {
     try {
       const accessToken = supabaseService.getAccessToken(request.header('Authorization'))
-      const supabase = supabaseService.getClient(accessToken)
 
-      const { data: products, error } = await supabase
-        .from('products')
-        .select('*')
-        .order('vencimiento', { ascending: true })
+      const { data: products, error } = await this.productService.getAvailableProducts(accessToken)
 
       if (error) {
         return response.badRequest({
