@@ -28,16 +28,19 @@ router.group(() => {
   router.resource('users', '#controllers/http/user_controller').apiOnly()
   
   // Products
+  // IMPORTANTE: Las rutas estáticas (/available) deben ir ANTES que las dinámicas (/:id)
+  // para evitar que "available" sea interpretado como un parámetro :id.
   router.group(() => {
     router.get('/', '#controllers/http/product_controller.index')
     router.post('/', '#controllers/http/product_controller.store')
+    router.get('/available', '#controllers/http/product_controller.getAvailable')
     router.get('/:id', '#controllers/http/product_controller.show')
     router.put('/:id', '#controllers/http/product_controller.update')
     router.delete('/:id', '#controllers/http/product_controller.destroy')
-    router.get('/available', '#controllers/http/product_controller.getAvailable')
   }).prefix('products')
   
   // Donations
+  // IMPORTANTE: Las rutas estáticas (/available, /stats) deben ir ANTES que las dinámicas (/:id)
   router.group(() => {
     router.get('/', '#controllers/http/donation_controller.index')
     router.post('/', '#controllers/http/donation_controller.store')
