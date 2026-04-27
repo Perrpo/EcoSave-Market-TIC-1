@@ -1,10 +1,6 @@
-import supabaseService from '#services/supabase_service'
-import OrderRepository from '#repositories/order_repository'
-import ProductRepository from '#repositories/product_repository'
+import OrderService from '#services/order_service'
+import ProductService from '#services/product_service'
 
-/**
- * Interfaz para productos en órdenes
- */
 interface OrderProduct {
   product_id: string
   product_name: string
@@ -20,9 +16,18 @@ interface ValidationResult {
 }
 
 /**
- * Servicio para validación de órdenes
+ * Servicio para validación de órdenes.
+ *
+ * ARQUITECTURA POR CAPAS:
+ * - Este servicio NO instancia repositorios directamente.
+ * - Delega el acceso a datos a OrderService y ProductService.
+ * - Regla: un servicio puede llamar a otro servicio del mismo nivel,
+ *   pero nunca debe saltar capas accediendo al repositorio directamente.
  */
 class OrderValidatorService {
+  private orderService = new OrderService()
+  private productService = new ProductService()
+
   /**
    * Valida una orden completa
    */
@@ -31,11 +36,8 @@ class OrderValidatorService {
     const warnings: string[] = []
 
     try {
-      const client = supabaseService.getClient(undefined, true)
-      const orderRepository = new OrderRepository(client)
-      
-      // Obtener orden de Supabase
-      const { data: order, error } = await orderRepository.findById(orderId)
+      // Delegamos la búsqueda a OrderService — no usamos repositorio directamente
+      const { data: order, error } = await this.orderService.getOrderById(undefined, orderId)
 
       if (error || !order) {
         errors.push('Orden no encontrada')
@@ -55,7 +57,6 @@ class OrderValidatorService {
       if (!order.products || order.products.length === 0) {
         errors.push('La orden debe tener al menos un producto')
       } else {
-        // Validar cada producto
         for (const product of order.products) {
           if (product.quantity <= 0) {
             errors.push(`Cantidad inválida para producto ${product.product_name}`)
@@ -74,7 +75,9 @@ class OrderValidatorService {
       // Validar cálculo del total
       const calculatedTotal = this.calculateTotal(order.products)
       if (Math.abs(calculatedTotal - order.total) > 0.01) {
-        warnings.push(`El total calculado (${calculatedTotal}) no coincide con el total de la orden (${order.total})`)
+        warnings.push(
+          `El total calculado (${calculatedTotal}) no coincide con el total de la orden (${order.total})`
+        )
       }
 
       // Validar stock de productos
@@ -82,6 +85,7 @@ class OrderValidatorService {
       if (!stockValidation.isValid) {
         errors.push(...stockValidation.errors)
       }
+      warnings.push(...stockValidation.warnings)
 
       return {
         isValid: errors.length === 0,
@@ -99,78 +103,60 @@ class OrderValidatorService {
   }
 
   /**
-   * Valida el stock de productos
+   * Valida el stock de productos.
+   * Usa ProductService — no instancia ProductRepository directamente.
    */
   private async validateStock(products: OrderProduct[]): Promise<ValidationResult> {
     const errors: string[] = []
     const warnings: string[] = []
 
     try {
-      const client = supabaseService.getClient(undefined, true)
-      const productRepository = new ProductRepository(client)
-
       for (const product of products) {
-        const { data: productData, error } = await productRepository.findById(product.product_id)
+        const { data: productData, error } = await this.productService.getProductById(
+          undefined,
+          product.product_id
+        )
 
         if (error || !productData) {
           errors.push(`Producto ${product.product_name} no encontrado`)
           continue
         }
 
-        if (productData.stock < product.quantity) {
+        const stock = productData.unidades ?? 0
+
+        if (stock < product.quantity) {
           errors.push(
-            `Stock insuficiente para ${productData.name}. Disponible: ${productData.stock}, Solicitado: ${product.quantity}`
+            `Stock insuficiente para ${productData.nombre}. Disponible: ${stock}, Solicitado: ${product.quantity}`
           )
-        } else if (productData.stock < product.quantity * 1.5) {
-          warnings.push(`Stock bajo para ${productData.name}`)
+        } else if (stock < product.quantity * 1.5) {
+          warnings.push(`Stock bajo para ${productData.nombre}`)
         }
       }
 
-      return {
-        isValid: errors.length === 0,
-        errors,
-        warnings,
-      }
+      return { isValid: errors.length === 0, errors, warnings }
     } catch (error) {
       console.error('Error validating stock:', error)
-      return {
-        isValid: false,
-        errors: ['Error al validar stock'],
-        warnings,
-      }
+      return { isValid: false, errors: ['Error al validar stock'], warnings }
     }
   }
 
-  /**
-   * Calcula el total de la orden
-   */
   private calculateTotal(products: OrderProduct[]): number {
-    return products.reduce((sum, product) => {
-      return sum + product.price * product.quantity
-    }, 0)
+    return products.reduce((sum, product) => sum + product.price * product.quantity, 0)
   }
 
-  /**
-   * Valida formato de email
-   */
   private isValidEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailRegex.test(email)
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
   }
 
   /**
-   * Marca una orden como validada
+   * Marca una orden como validada.
+   * Usa OrderService — sin acceso directo al repositorio.
    */
   async markAsValidated(orderId: string): Promise<boolean> {
     try {
-      const client = supabaseService.getClient(undefined, true)
-      const orderRepository = new OrderRepository(client)
-      
-      const { error } = await orderRepository.update(orderId, { 
-        status: 'validated',
-        validated_at: new Date().toISOString()
+      const { error } = await this.orderService.updateOrderStatus(orderId, 'validated', {
+        validated_at: new Date().toISOString(),
       })
-
       return !error
     } catch (error) {
       console.error('Error marking order as validated:', error)
