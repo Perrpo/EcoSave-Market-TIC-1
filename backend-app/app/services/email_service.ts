@@ -1,15 +1,23 @@
+import OrderService from '#services/order_service'
+import EmailLogRepository from '#repositories/email_log_repository'
+import supabaseService from '#services/supabase_service'
 import nodemailer from 'nodemailer'
 import type { Transporter } from 'nodemailer'
 import invoiceGeneratorService from '#services/invoice_generator_service'
-import supabaseService from '#services/supabase_service'
-import OrderRepository from '#repositories/order_repository'
-import EmailLogRepository from '#repositories/email_log_repository'
 
 /**
  * Servicio para envío de emails
  */
+/**
+ * ARQUITECTURA POR CAPAS:
+ * - EmailService usa OrderService para obtener datos de órdenes.
+ * - NO instancia OrderRepository directamente.
+ * - EmailLogRepository sí se instancia aquí porque no tiene un servicio propio
+ *   dedicado — es un repositorio auxiliar de logging sin lógica de negocio.
+ */
 class EmailService {
   private transporter: Transporter | null = null
+  private orderService = new OrderService()
 
   /**
    * Inicializa el transportador de email
@@ -48,11 +56,8 @@ class EmailService {
         throw new Error('Email transporter not initialized')
       }
 
-      const client = supabaseService.getClient(undefined, true)
-      const orderRepository = new OrderRepository(client)
-      
-      // Obtener datos de la orden
-      const { data: order, error } = await orderRepository.findById(orderId)
+      // Delegamos a OrderService — respetamos la capa de servicio
+      const { data: order, error } = await this.orderService.getOrderById(undefined, orderId)
 
       if (error || !order) {
         throw new Error('Orden no encontrada')
@@ -182,10 +187,10 @@ class EmailService {
       await this.initTransporter()
       if (!this.transporter) return false
 
-      const client = supabaseService.getClient(undefined, true)
-      const orderRepository = new OrderRepository(client)
-      
-      const { data: order, error } = await orderRepository.findById(orderId)
+   
+
+      // Delegamos a OrderService — respetamos la capa de servicio
+      const { data: order, error } = await this.orderService.getOrderById(undefined, orderId)
 
       if (error || !order) return false
 
