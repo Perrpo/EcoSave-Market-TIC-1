@@ -1,21 +1,23 @@
 import PDFDocument from 'pdfkit'
-import supabaseService from '#services/supabase_service'
-import OrderRepository from '#repositories/order_repository'
+import OrderService from '#services/order_service'
 
 /**
- * Servicio para generación de facturas en PDF
+ * Servicio para generación de facturas en PDF.
+ *
+ * ARQUITECTURA POR CAPAS:
+ * - Este servicio (capa de Servicio) usa OrderService para obtener datos de órdenes.
+ * - NO instancia OrderRepository directamente — eso violaría la separación de capas.
  */
 class InvoiceGeneratorService {
+  private orderService = new OrderService()
+
   /**
    * Genera una factura en formato PDF
    */
   async generateInvoice(orderId: string): Promise<Buffer> {
     try {
-      const client = supabaseService.getClient(undefined, true)
-      const orderRepository = new OrderRepository(client)
-      
-      // Obtener datos de la orden
-      const { data: order, error } = await orderRepository.findById(orderId)
+      // Delegamos la obtención de datos a OrderService
+      const { data: order, error } = await this.orderService.getOrderById(undefined, orderId)
 
       if (error || !order) {
         throw new Error('Orden no encontrada')
