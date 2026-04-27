@@ -52,6 +52,11 @@ export default class DonationService {
     return { error: null, data: donation }
   }
 
+  async getDonationById(accessToken: string | undefined, id: string) {
+    const repository = this.getRepository(accessToken, true)
+    return await repository.findById(id)
+  }
+
   async requestDonation(accessToken: string | undefined, ongId: string, donationId: string) {
     const repository = this.getRepository(accessToken, true)
 
