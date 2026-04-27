@@ -114,6 +114,37 @@ export default class DonationController {
   }
 
   /**
+   * Obtiene una donación específica por ID
+   * GET /api/v1/donations/:id
+   */
+  async show({ params, request, response }: HttpContext) {
+    try {
+      const { id } = params
+      const accessToken = supabaseService.getAccessToken(request.header('Authorization'))
+
+      const { data: donation, error } = await this.donationService.getDonationById(accessToken, id)
+
+      if (error || !donation) {
+        return response.notFound({
+          success: false,
+          message: 'Donación no encontrada',
+        })
+      }
+
+      return response.ok({
+        success: true,
+        data: donation,
+      })
+    } catch (error) {
+      return response.internalServerError({
+        success: false,
+        message: 'Error al obtener la donación',
+        error: error instanceof Error ? error.message : 'Error desconocido',
+      })
+    }
+  }
+
+  /**
    * ONG solicita una donación
    * POST /api/v1/donations/:id/request
    */
