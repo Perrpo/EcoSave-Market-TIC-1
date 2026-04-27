@@ -132,18 +132,24 @@ npm install
 Editar `.env` con tus credenciales de Supabase:
 
 ```env
-# Supabase
-SUPABASE_URL=https://tu-proyecto.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=tu_service_role_key   # ← NO la anon key
-
-# AdonisJS
+TZ=UTC
 PORT=3333
 HOST=localhost
-NODE_ENV=development
+LOG_LEVEL=info
 APP_KEY=tu_app_key_generada
+NODE_ENV=development
+
+# Supabase Configuration
+SUPABASE_URL=https://otvxqjpofaibziffudwx.supabase.co
+SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im90dnhxanBvZmFpYnppZmZ1ZHd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3MjAwNzIsImV4cCI6MjA3ODI5NjA3Mn0.x_GWS6Vhtic1kT8gIskTa2lI-HIVGWiBZekBf-isVrA
 ```
 
 > ⚠️ La `service_role` key bypasea RLS. Úsala **solo en el backend** y nunca la expongas al frontend.
+
+Genera el APP_KEY:
+```bash
+node ace generate:key
+```
 
 Iniciar el servidor:
 
