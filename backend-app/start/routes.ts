@@ -56,6 +56,14 @@ router.group(() => {
     router.get('/', '#controllers/http/location_controller.index')
   }).prefix('locations')
   
+  // Notifications
+  router.group(() => {
+    router.get('/', '#controllers/http/notification_controller.index')
+    router.post('/mark-all-read', '#controllers/http/notification_controller.markAllAsRead')
+    router.post('/clear-all', '#controllers/http/notification_controller.clearAll')
+    router.post('/:id/read', '#controllers/http/notification_controller.markAsRead')
+  }).prefix('notifications')
+  
   // Auth
   router.post('auth/register', '#controllers/http/auth_controller.register')
   router.post('auth/login', '#controllers/http/auth_controller.login')

@@ -70,12 +70,36 @@ export default class DonationService {
       return { error: new Error('Esta donación ya no está disponible'), data: null }
     }
 
-    return await repository.update(donationId, {
+    const result = await repository.update(donationId, {
       ong_id: ongId,
       status: 'requested',
       requested_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     })
+
+    if (!result.error && result.data) {
+      // Notificar al supermercado dueño del producto
+      const { default: NotificationService } = await import('#services/notification_service')
+      const notificationService = new NotificationService()
+      
+      const { data: ongProfile } = await supabaseService.getClient(undefined, true)
+        .from('profiles')
+        .select('business_name')
+        .eq('id', ongId)
+        .single()
+
+      const ongName = ongProfile?.business_name || 'Una ONG'
+
+      await notificationService.createNotification({
+        user_id: donation.user_id, // El supermercado
+        type: 'donation_requested',
+        title: 'Nueva solicitud de donación',
+        message: `${ongName} ha solicitado ${donation.quantity} unidades de ${donation.product_name}.`,
+        product_id: donation.product_id
+      }, true)
+    }
+
+    return result
   }
 
   async confirmDonation(accessToken: string | undefined, donationId: string) {
@@ -91,11 +115,35 @@ export default class DonationService {
       return { error: new Error('Esta donación no puede ser confirmada'), data: null }
     }
 
-    return await repository.update(donationId, {
+    const result = await repository.update(donationId, {
       status: 'completed',
       completed_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     })
+
+    if (!result.error && result.data) {
+      // Notificar al supermercado que la ONG ya recibió los productos
+      const { default: NotificationService } = await import('#services/notification_service')
+      const notificationService = new NotificationService()
+      
+      const { data: ongProfile } = await supabaseService.getClient(undefined, true)
+        .from('profiles')
+        .select('business_name')
+        .eq('id', donation.ong_id)
+        .single()
+
+      const ongName = ongProfile?.business_name || 'La ONG'
+
+      await notificationService.createNotification({
+        user_id: donation.user_id, // El supermercado
+        type: 'donation_completed',
+        title: 'Donación entregada',
+        message: `${ongName} ha confirmado la recepción de ${donation.product_name}. ¡Gracias por tu aporte!`,
+        product_id: donation.product_id
+      }, true)
+    }
+
+    return result
   }
 
   async getAvailableDonations(_accessToken?: string) {

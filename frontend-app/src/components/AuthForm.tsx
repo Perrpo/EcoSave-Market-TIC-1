@@ -64,8 +64,10 @@ const AuthForm: React.FC = () => {
       if (tab === 'login') {
         result = await auth.login(email, password, loginRole)
         if (result.success) {
-          if (auth.user?.role === 'admin') navigate('/dashboard-admin')
-          else if (auth.user?.role === 'ong') navigate('/dashboard-ong')
+          // Usar el usuario retornado directamente, no auth.user que puede estar desactualizado
+          const loggedUser = result.user
+          if (loggedUser?.role === 'admin') navigate('/dashboard-admin')
+          else if (loggedUser?.role === 'ong') navigate('/dashboard-ong')
           else navigate('/dashboard')
         } else {
           setError(result.error || 'Error desconocido')

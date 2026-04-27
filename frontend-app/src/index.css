@@ -31,18 +31,7 @@
   --font-body: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --bg: #1a1f1a;
-    --card: #222922;
-    --ink: #F8F9FA;
-    --muted: #a0b0a4;
-    --stroke: #2e382e;
-    --shadow-1: 0 12px 30px rgba(0, 0, 0, 0.45);
-    --shadow-2: 0 20px 60px rgba(0, 0, 0, 0.5);
-  }
-}
+/* Dark mode deshabilitado — la guía de identidad visual usa Estilo Ejecutivo (Limpio) */
 
 *,
 *::before,
