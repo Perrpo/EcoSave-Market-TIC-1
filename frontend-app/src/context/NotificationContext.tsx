@@ -39,8 +39,8 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
         setNotifications(response.data as Notification[]);
         setUnreadCount(response.unreadCount || 0);
       }
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
+    } catch {
+      // Silently ignore - notifications are non-critical
     }
   };
 

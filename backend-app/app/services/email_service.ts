@@ -28,13 +28,16 @@ class EmailService {
     // Configuración para Gmail (desarrollo)
     // En producción, usar servicios como SendGrid, Resend, etc.
     this.transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.EMAIL_PORT || '587'),
-      secure: false, // true para 465, false para otros puertos
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true, // true para 465 (TLS implícito)
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASSWORD,
       },
+      tls: {
+        rejectUnauthorized: false
+      }
     })
 
     // Verificar conexión
@@ -336,6 +339,42 @@ class EmailService {
     } catch (error) {
       console.error('Error sending test email:', error)
       return false
+    }
+  }
+  /**
+   * Envía certificado de donación por correo
+   */
+  async sendCertificateEmail(to: string, certificatePDF: Buffer, role: string): Promise<{ success: boolean, error?: string }> {
+    try {
+      await this.initTransporter()
+      if (!this.transporter) return { success: false, error: 'Transporter no inicializado' }
+
+      const mailOptions = {
+        from: `"EcoSave Market" <${process.env.EMAIL_USER}>`,
+        to,
+        subject: `📑 Reporte Consolidado de Donaciones - EcoSave Market`,
+        html: `
+          <h1>Reporte Consolidado Anual</h1>
+          <p>Hola,</p>
+          <p>Adjunto encontrarás el reporte consolidado anual de tus ${role === 'ong' ? 'recepciones' : 'donaciones'} a través de la plataforma EcoSave Market.</p>
+          <p>Este documento contiene validez para tus registros contables${role === 'supermarket' ? ' y deducciones tributarias (Ley 2380/2024)' : ''}.</p>
+          <br/>
+          <p>Saludos,<br/>El equipo de EcoSave Market</p>
+        `,
+        attachments: [
+          {
+            filename: `reporte-consolidado-${role}.pdf`,
+            content: certificatePDF,
+            contentType: 'application/pdf',
+          },
+        ],
+      }
+
+      await this.transporter.sendMail(mailOptions)
+      return { success: true }
+    } catch (error) {
+      console.error('Error sending certificate email:', error)
+      return { success: false, error: error instanceof Error ? error.message : String(error) }
     }
   }
 }

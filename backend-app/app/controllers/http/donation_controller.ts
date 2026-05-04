@@ -305,4 +305,100 @@ export default class DonationController {
       })
     }
   }
+  /**
+   * Genera y descarga el certificado de donación (Ley 2380/2024)
+   * GET /api/v1/donations/:id/certificate
+   */
+  async downloadCertificate({ params, response }: HttpContext) {
+    try {
+      // Importación dinámica
+      const certificateGeneratorService = (await import('#services/certificate_generator_service')).default
+      
+      const { id } = params
+      const pdfBuffer = await certificateGeneratorService.generateCertificate(id)
+
+      response.header('Content-Type', 'application/pdf')
+      response.header('Content-Disposition', `attachment; filename="certificado-donacion-${id.slice(0, 8)}.pdf"`)
+      
+      return response.send(pdfBuffer)
+    } catch (error) {
+      return response.internalServerError({
+        success: false,
+        message: 'Error al generar el certificado',
+        error: error instanceof Error ? error.message : 'Error desconocido',
+      })
+    }
+  }
+
+  /**
+   * Genera y descarga el certificado consolidado anual
+   * GET /api/v1/donations/certificate/all
+   */
+  async downloadConsolidatedCertificate({ request, response }: HttpContext) {
+    try {
+      const accessToken = supabaseService.getAccessToken(request.header('Authorization'))
+      const userId = await supabaseService.getUserId(accessToken)
+      
+      if (!userId) {
+        return response.unauthorized({ success: false, message: 'Token inválido o ausente' })
+      }
+
+      const role = request.qs().role || 'supermarket'
+
+      const certificateGeneratorService = (await import('#services/certificate_generator_service')).default
+      const pdfBuffer = await certificateGeneratorService.generateConsolidatedCertificate(accessToken, userId, role)
+
+      response.header('Content-Type', 'application/pdf')
+      response.header('Content-Disposition', `attachment; filename="reporte-consolidado-${role}.pdf"`)
+      
+      return response.send(pdfBuffer)
+    } catch (error) {
+      return response.internalServerError({
+        success: false,
+        message: 'Error al generar el certificado consolidado',
+        error: error instanceof Error ? error.message : 'Error desconocido',
+      })
+    }
+  }
+
+  /**
+   * Envía el certificado consolidado anual por correo electrónico
+   * POST /api/v1/donations/certificate/send-email
+   */
+  async sendConsolidatedCertificateEmail({ request, response }: HttpContext) {
+    try {
+      const accessToken = supabaseService.getAccessToken(request.header('Authorization'))
+      const userId = await supabaseService.getUserId(accessToken)
+      
+      if (!userId) {
+        return response.unauthorized({ success: false, message: 'Token inválido o ausente' })
+      }
+
+      const { email, role } = request.only(['email', 'role'])
+      
+      if (!email) {
+        return response.badRequest({ success: false, message: 'El correo electrónico es requerido' })
+      }
+
+      const userRole = role || 'supermarket'
+
+      const certificateGeneratorService = (await import('#services/certificate_generator_service')).default
+      const emailService = (await import('#services/email_service')).default
+      
+      const pdfBuffer = await certificateGeneratorService.generateConsolidatedCertificate(accessToken, userId, userRole)
+      const result = await emailService.sendCertificateEmail(email, pdfBuffer, userRole)
+
+      if (result.success) {
+        return response.ok({ success: true, message: 'Certificado enviado exitosamente al correo' })
+      } else {
+        return response.badRequest({ success: false, message: 'No se pudo enviar el correo: ' + result.error })
+      }
+    } catch (error) {
+      return response.internalServerError({
+        success: false,
+        message: 'Error al enviar el certificado consolidado por correo',
+        error: error instanceof Error ? error.message : 'Error desconocido',
+      })
+    }
+  }
 }
