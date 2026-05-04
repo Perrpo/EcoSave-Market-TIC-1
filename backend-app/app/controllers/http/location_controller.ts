@@ -17,12 +17,14 @@ export default class LocationController {
       const { data, error } = await this.locationService.getLocations(accessToken, tipo as string | undefined)
 
       if (error) {
-        return response.badRequest({ success: false, message: 'Error al obtener ubicaciones', error: error.message })
+        console.warn('[Locations] Error no crítico:', error.message || error.code)
+        return response.ok({ success: true, data: [] })
       }
 
       return response.ok({ success: true, data: data || [] })
     } catch (error) {
-      return response.internalServerError({ success: false, message: 'Error al obtener ubicaciones', error: error instanceof Error ? error.message : 'Error desconocido' })
+      console.warn('[Locations] Catch error:', error instanceof Error ? error.message : 'Error desconocido')
+      return response.ok({ success: true, data: [] })
     }
   }
 }

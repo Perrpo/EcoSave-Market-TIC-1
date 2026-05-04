@@ -330,6 +330,74 @@ const Dashboard: React.FC = () => {
             >
               Historial de Donaciones
             </button>
+            <button
+              className="tab-btn"
+              style={{ color: '#00A99D', marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }}
+              onClick={() => {
+                const token = localStorage.getItem('token');
+                fetch(`http://localhost:3333/api/v1/donations/certificate/all?role=supermarket`, {
+                  headers: token ? { Authorization: `Bearer ${token}` } : {}
+                })
+                .then(res => {
+                  if (!res.ok) throw new Error('No valid')
+                  return res.blob()
+                })
+                .then(blob => {
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `reporte-anual-supermercado.pdf`;
+                  document.body.appendChild(a);
+                  a.click();
+                  window.URL.revokeObjectURL(url);
+                })
+                .catch(err => {
+                  console.error(err);
+                  alert('Aún no tienes donaciones completadas para generar el reporte consolidado.');
+                });
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+              Reporte Consolidado
+            </button>
+            <button
+              className="tab-btn"
+              style={{ color: '#F58220', display: 'flex', alignItems: 'center', gap: '6px' }}
+              onClick={() => {
+                const email = window.prompt("Ingresa el correo electrónico al cual deseas enviar el reporte consolidado:");
+                if (!email) return;
+                
+                if (!email.includes('@') || !email.includes('.')) {
+                  alert("Por favor, ingresa un correo electrónico válido.");
+                  return;
+                }
+
+                const token = localStorage.getItem('token');
+                fetch(`http://localhost:3333/api/v1/donations/certificate/send-email`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {})
+                  },
+                  body: JSON.stringify({ email, role: 'supermarket' })
+                })
+                .then(res => res.json())
+                .then(data => {
+                  if (data.success) {
+                    alert('✅ Certificado enviado exitosamente a ' + email);
+                  } else {
+                    alert('❌ Error: ' + (data.message || 'No se pudo enviar'));
+                  }
+                })
+                .catch(err => {
+                  console.error(err);
+                  alert('Ocurrió un error al intentar enviar el correo. Verifica tu conexión.');
+                });
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+              Enviar por Correo
+            </button>
           </div>
           <div className="content-divider" />
           <div className="table-wrap">
@@ -407,6 +475,101 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Sección de solicitudes de ONGs */}
+      {donations.filter(d => d.status === 'requested').length > 0 && (
+        <div className="card" style={{ borderLeft: '4px solid #F58220' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <div>
+              <h3 className="main-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '1.3rem' }}>🔔</span> Solicitudes de ONGs
+              </h3>
+              <p className="subtitle">ONGs que han solicitado tus donaciones — confirma la entrega</p>
+            </div>
+            <span style={{
+              background: '#F58220',
+              color: '#fff',
+              borderRadius: '999px',
+              padding: '4px 14px',
+              fontWeight: 700,
+              fontSize: '0.85rem'
+            }}>
+              {donations.filter(d => d.status === 'requested').length} pendiente(s)
+            </span>
+          </div>
+          <div style={{ display: 'grid', gap: '12px' }}>
+            {donations.filter(d => d.status === 'requested').map(donation => (
+              <div key={donation.id} style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '14px 16px',
+                border: '1px solid #e9ecef',
+                borderRadius: '12px',
+                background: '#fffaf5',
+                gap: '16px',
+                flexWrap: 'wrap'
+              }}>
+                <div style={{ flex: 1, minWidth: '200px' }}>
+                  <div style={{ fontWeight: 700, fontSize: '1rem', marginBottom: '4px' }}>
+                    {donation.product_name}
+                  </div>
+                  <div style={{ color: '#6c757d', fontSize: '0.85rem' }}>
+                    {donation.product_category} • {donation.quantity} unidades • Solicitado el {new Date(donation.requested_at || donation.created_at).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <span style={{
+                    background: '#fff3cd',
+                    color: '#856404',
+                    padding: '4px 12px',
+                    borderRadius: '999px',
+                    fontSize: '0.78rem',
+                    fontWeight: 600
+                  }}>
+                    ⏳ Pendiente
+                  </span>
+                  <button
+                    onClick={async () => {
+                      try {
+                        const resp = await apiService.confirmDonation(donation.id);
+                        if (resp.success) {
+                          addNotification({
+                            type: 'donation_completed',
+                            title: 'Donación Entregada',
+                            message: `Has confirmado la entrega de ${donation.product_name}.`,
+                          });
+                          await loadDonations();
+                        } else {
+                          alert('Error: ' + resp.message);
+                        }
+                      } catch {
+                        alert('Error al confirmar la entrega.');
+                      }
+                    }}
+                    style={{
+                      background: 'linear-gradient(135deg, #2D5A27, #3a7a32)',
+                      color: '#fff',
+                      border: 'none',
+                      padding: '8px 18px',
+                      borderRadius: '8px',
+                      fontWeight: 700,
+                      fontSize: '0.85rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      transition: 'all 180ms ease'
+                    }}
+                  >
+                    ✅ Confirmar Entrega
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <button className="fab" onClick={() => setShowAddProduct(true)} aria-label="Agregar producto">+</button>
 
@@ -501,10 +664,36 @@ const Dashboard: React.FC = () => {
                       <p>Fecha: {new Date(donation.created_at).toLocaleDateString()}</p>
                       <p>ONG: {donation.ong_id || 'Pendiente'}</p>
                     </div>
-                    <div className="donation-status">
+                    <div className="donation-status" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
                       <span className={`badge ${donation.status}`}>
                         {donation.status === 'completed' ? 'Completada' : 'Pendiente'}
                       </span>
+                      <button 
+                        className="action-btn" 
+                        style={{ background: '#00A99D', color: '#fff', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}
+                        onClick={() => {
+                          const token = localStorage.getItem('token');
+                          fetch(`http://localhost:3333/api/v1/donations/${donation.id}/certificate`, {
+                            headers: token ? { Authorization: `Bearer ${token}` } : {}
+                          })
+                          .then(res => res.blob())
+                          .then(blob => {
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `certificado-${donation.id.slice(0,8)}.pdf`;
+                            document.body.appendChild(a);
+                            a.click();
+                            window.URL.revokeObjectURL(url);
+                          })
+                          .catch(err => {
+                            console.error('Error downloading certificate', err);
+                            alert('Error al descargar el certificado');
+                          });
+                        }}
+                      >
+                        Generar PDF
+                      </button>
                     </div>
                   </div>
                 ))

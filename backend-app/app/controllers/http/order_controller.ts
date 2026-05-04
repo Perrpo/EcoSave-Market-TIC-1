@@ -119,6 +119,31 @@ export default class OrderController {
   }
 
   /**
+   * Genera y descarga el certificado de donación (Ley 2380/2024)
+   * GET /api/v1/orders/:id/certificate
+   */
+  async downloadCertificate({ params, response }: HttpContext) {
+    try {
+      // Importación dinámica para evitar problemas circulares o si falla la importación en el top level
+      const certificateGeneratorService = (await import('#services/certificate_generator_service')).default
+      
+      const { id } = params
+      const pdfBuffer = await certificateGeneratorService.generateCertificate(id)
+
+      response.header('Content-Type', 'application/pdf')
+      response.header('Content-Disposition', `attachment; filename="certificado-${id.slice(0, 8)}.pdf"`)
+      
+      return response.send(pdfBuffer)
+    } catch (error) {
+      return response.internalServerError({
+        success: false,
+        message: 'Error al generar el certificado',
+        error: error instanceof Error ? error.message : 'Error desconocido',
+      })
+    }
+  }
+
+  /**
    * Reenvía el email de confirmación
    * POST /api/v1/orders/:id/resend-email
    */

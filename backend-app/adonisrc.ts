@@ -59,6 +59,7 @@ export default defineConfig({
     () => import('#start/routes'),
     () => import('#start/kernel'),
     () => import('#start/order_scheduler'),
+    () => import('#start/keep_alive'),
   ],
 
   /*

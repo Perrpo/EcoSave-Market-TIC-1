@@ -24,6 +24,10 @@ router.group(() => {
     return { status: 'ok' }
   })
 
+  // Keep Alive
+  router.get('/keep-alive', '#controllers/http/keep_alive_controller.ping')
+
+
   // Users
   router.resource('users', '#controllers/http/user_controller').apiOnly()
   
@@ -46,7 +50,10 @@ router.group(() => {
     router.post('/', '#controllers/http/donation_controller.store')
     router.get('/available', '#controllers/http/donation_controller.getAvailable')
     router.get('/stats', '#controllers/http/donation_controller.getStats')
+    router.get('/certificate/all', '#controllers/http/donation_controller.downloadConsolidatedCertificate')
+    router.post('/certificate/send-email', '#controllers/http/donation_controller.sendConsolidatedCertificateEmail')
     router.get('/:id', '#controllers/http/donation_controller.show')
+    router.get('/:id/certificate', '#controllers/http/donation_controller.downloadCertificate')
     router.post('/:id/request', '#controllers/http/donation_controller.request')
     router.post('/:id/confirm', '#controllers/http/donation_controller.confirm')
   }).prefix('donations')
