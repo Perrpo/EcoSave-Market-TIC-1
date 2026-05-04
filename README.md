@@ -141,18 +141,45 @@ npm install
 Editar `.env` con tus credenciales de Supabase:
 
 ```env
-# Supabase
-SUPABASE_URL=https://tu-proyecto.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=tu_service_role_key   # ← NO la anon key
+# ============================================
+# BASE DE DATOS - SUPABASE
+# ============================================
+# Obtén estos valores desde: https://supabase.com/dashboard/project/TU_PROYECTO/settings/api
 
-# AdonisJS
+SUPABASE_URL=https://tu-proyecto.supabase.co
+SUPABASE_KEY=tu_anon_key                        # ← Clave pública (anon / publishable)
+SUPABASE_SERVICE_ROLE_KEY=tu_service_role_key    # ← Clave secreta (service_role)
+
+# ============================================
+# SERVIDOR
+# ============================================
 PORT=3333
-HOST=localhost
+HOST=0.0.0.0
 NODE_ENV=development
-APP_KEY=tu_app_key_generada
+APP_KEY=ecosave-market-university-project-2024
+
+# ============================================
+# EMAIL SERVICE (SMTP) - Opcional
+# ============================================
+# Para enviar certificados de donación por correo.
+# Si usas Gmail:
+#   1. Activa la verificación en 2 pasos en tu cuenta de Google
+#   2. Ve a: https://myaccount.google.com/apppasswords
+#   3. Genera una contraseña de aplicación
+#   4. Pégala aquí SIN espacios
+
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=tu_correo@gmail.com
+EMAIL_PASSWORD=tucontraseñadeaplicacion
 ```
 
-> ⚠️ La `service_role` key bypasea RLS. Úsala **solo en el backend** y nunca la expongas al frontend.
+> [!CAUTION]
+> **¡Las 2 claves de Supabase son obligatorias!** 
+> - `SUPABASE_KEY` (anon key): Se usa para consultas autenticadas con el JWT del usuario.
+> - `SUPABASE_SERVICE_ROLE_KEY`: Bypasea RLS y se usa internamente para operaciones privilegiadas (notificaciones cross-usuario, creación de donaciones). **Nunca la expongas al frontend.**
+>
+> Sin la `SUPABASE_SERVICE_ROLE_KEY`, el backend no podrá crear notificaciones ni gestionar donaciones entre roles.
 
 Iniciar el servidor:
 
@@ -234,7 +261,8 @@ Las políticas RLS de Supabase garantizan el aislamiento de datos:
 ## 🚧 Roadmap
 
 - [ ] **Solicitudes parciales** — permitir solicitar una cantidad específica (no toda la donación)
-- [ ] **Comprobante PDF** — generar soporte formal de donación para fines contables
+- [x] **Comprobante PDF** — certificados de donación con deducción tributaria (Ley 2380/2024) ✅
+- [x] **Envío de certificados por correo** — enviar reportes consolidados a cualquier email ✅
 - [ ] **Redistribución inteligente** — asignación automática de sobrantes a otras ONGs
 - [ ] **Dashboard Admin completo** — métricas globales conectadas al backend real
 
@@ -252,9 +280,13 @@ Las políticas RLS de Supabase garantizan el aislamiento de datos:
 ✅ RLS configurado en products y donations
 ✅ API REST con AdonisJS 6 (puerto 3333)
 ✅ Protección de rutas por rol (previene el acceso cruzado entre dashboards)
+✅ Certificados PDF de donación (Ley 2380/2024) con deducción tributaria del 37%
+✅ Envío de reportes consolidados por correo electrónico (SMTP Gmail)
+✅ Sección de solicitudes de ONGs visible en Dashboard Supermercado
+✅ Dashboard ONG rediseñado con tarjetas, filtros y urgencia de vencimiento
+✅ Keep-Alive service para prevenir dormancia del backend
 🟡 Dashboard Admin parcialmente conectado
 🟡 Solicitudes parciales pendientes
-🟡 Generación de comprobante PDF pendiente
 ```
 
 ---
