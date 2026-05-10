@@ -39,6 +39,7 @@ const Sidebar: React.FC = () => {
   const navItems = isAdmin
     ? [
         { to: '/dashboard-admin', label: 'Panel Administrador', icon: '🛡️' },
+        { to: '/asignacion-excedentes', label: 'Asignación Excedentes', icon: '🤖' },
         { to: '/map', label: 'Mapa General', icon: '🗺️' },
         { to: '/notifications', label: 'Notificaciones', icon: '🔔', badge: unreadCount },
       ]

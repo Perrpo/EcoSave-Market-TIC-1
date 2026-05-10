@@ -9,6 +9,7 @@ import DashboardONG from './pages/DashboardONG';
 import DashboardAdmin from './pages/DashboardAdmin';
 import Map from './pages/Map';
 import Notifications from './pages/Notifications';
+import AsignacionExcedentes from './pages/AsignacionExcedentes';
 
 const AppContent: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
@@ -37,6 +38,7 @@ const AppContent: React.FC = () => {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/dashboard-ong" element={<DashboardONG />} />
           <Route path="/dashboard-admin" element={<DashboardAdmin />} />
+          <Route path="/asignacion-excedentes" element={<AsignacionExcedentes />} />
           <Route path="/map" element={<Map />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="*" element={<Navigate to={getDefaultRoute()} replace />} />
