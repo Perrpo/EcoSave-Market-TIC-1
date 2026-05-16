@@ -312,6 +312,147 @@ class EmailService {
   }
 
   /**
+   * Envía email al supermercado con el certificado de donación adjunto en PDF
+   */
+  async sendDonationCertificateEmail(certificateId: string, donorUserId: string): Promise<boolean> {
+    try {
+      await this.initTransporter()
+      if (!this.transporter) return false
+
+      const supabase = supabaseService.getClient(undefined, true)
+
+      // Obtener datos del certificado con relaciones
+      const { data: cert, error } = await supabase
+        .from('donation_certificates')
+        .select(`
+          *,
+          donor:users!donation_certificates_donante_id_fkey (
+            email,
+            profile:user_profiles!fk_user_profiles_user (name, business)
+          ),
+          recipient:users!donation_certificates_donatario_id_fkey (
+            email,
+            profile:user_profiles!fk_user_profiles_user (name, business)
+          )
+        `)
+        .eq('id', certificateId)
+        .single()
+
+      if (error || !cert) {
+        console.error('Certificado no encontrado para email:', certificateId)
+        return false
+      }
+
+      // Importar el servicio de certificados para generar el PDF
+      const certificateGeneratorService = (await import('#services/certificate_generator_service')).default
+      const pdfBuffer = await certificateGeneratorService.generatePDF(certificateId)
+
+      const donorEmail = cert.donor?.email
+      if (!donorEmail) return false
+
+      const donorName = cert.donor?.profile?.business || cert.donor?.profile?.name || donorEmail
+      const recipientName = cert.recipient?.profile?.business || cert.recipient?.profile?.name || cert.recipient?.email || 'ONG'
+
+      const mailOptions = {
+        from: `"EcoSave Market" <${process.env.EMAIL_USER}>`,
+        to: donorEmail,
+        subject: `📜 Certificado de Donación ${cert.codigo_certificado} - EcoSave Market`,
+        html: this.generateCertificateEmailHTML(cert, donorName, recipientName),
+        attachments: [
+          {
+            filename: `certificado-${cert.codigo_certificado}.pdf`,
+            content: pdfBuffer,
+            contentType: 'application/pdf',
+          },
+        ],
+      }
+
+      const info = await this.transporter.sendMail(mailOptions)
+      console.log('✅ Certificate email sent:', info.messageId)
+      return true
+    } catch (error) {
+      console.error('Error sending certificate email:', error)
+      return false
+    }
+  }
+
+  /**
+   * Genera el HTML del email de certificado para el supermercado
+   */
+  private generateCertificateEmailHTML(cert: any, donorName: string, recipientName: string): string {
+    const fechaEmision = new Date(cert.fecha_emision).toLocaleDateString('es-CO', {
+      day: 'numeric', month: 'long', year: 'numeric'
+    })
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+          .container { max-width: 600px; margin: 0 auto; }
+          .header { background: linear-gradient(135deg, #1a7a4a 0%, #24b26e 100%); color: white; padding: 36px 30px; border-radius: 12px 12px 0 0; }
+          .header h1 { margin: 0 0 6px; font-size: 22px; }
+          .header p { margin: 0; opacity: .85; font-size: 13px; }
+          .content { background: #f9f9f9; padding: 30px; }
+          .cert-box { background: white; border: 2px solid #24b26e; border-radius: 10px; padding: 24px; margin: 20px 0; }
+          .cert-code { font-size: 20px; font-weight: bold; color: #1a7a4a; letter-spacing: 2px; }
+          .info-row { display: flex; justify-content: space-between; margin: 8px 0; font-size: 14px; }
+          .label { color: #777; }
+          .value { font-weight: bold; color: #333; }
+          .highlight { background: #e8f5e9; border-left: 4px solid #24b26e; padding: 14px 18px; border-radius: 4px; margin: 20px 0; font-size: 14px; }
+          .btn { display: inline-block; background: #1a7a4a; color: white; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; margin: 10px 0; }
+          .footer { background: #1a1a2e; color: #aaa; padding: 20px 30px; text-align: center; border-radius: 0 0 12px 12px; font-size: 12px; }
+          .footer a { color: #24b26e; text-decoration: none; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>📜 Tu Certificado de Donación está listo</h1>
+            <p>EcoSave Market — Plataforma Anti-Desperdicio de Alimentos</p>
+          </div>
+
+          <div class="content">
+            <p>Hola, <strong>${donorName}</strong> 👋</p>
+            <p>La ONG <strong>${recipientName}</strong> ha confirmado la recepción de tu donación. Hemos generado automáticamente tu <strong>Certificado de Donación</strong> de acuerdo con la <strong>Ley 2380 de 2024</strong> de Colombia.</p>
+
+            <div class="cert-box">
+              <div class="cert-code">${cert.codigo_certificado}</div>
+              <br/>
+              <div class="info-row"><span class="label">Producto donado:</span><span class="value">${cert.producto}</span></div>
+              <div class="info-row"><span class="label">Categoría:</span><span class="value">${cert.categoria}</span></div>
+              <div class="info-row"><span class="label">Cantidad:</span><span class="value">${cert.cantidad} unidades</span></div>
+              <div class="info-row"><span class="label">ONG receptora:</span><span class="value">${recipientName}</span></div>
+              <div class="info-row"><span class="label">Fecha de emisión:</span><span class="value">${fechaEmision}</span></div>
+              <div class="info-row"><span class="label">Estado:</span><span class="value" style="color:#1a7a4a;">✅ Vigente</span></div>
+            </div>
+
+            <div class="highlight">
+              💡 <strong>Beneficio tributario:</strong> Este certificado puede usarse como soporte ante la DIAN para deducción de impuestos, siempre que la ONG esté registrada en el Régimen Tributario Especial.
+            </div>
+
+            <p>El certificado en <strong>formato PDF</strong> está adjunto a este correo. También puedes descargarlo en cualquier momento desde tu repositorio de certificados:</p>
+
+            <p style="text-align:center;">
+              <a href="http://localhost:5173/certificates" class="btn">Ver mis Certificados</a>
+            </p>
+
+            <p style="font-size: 13px; color: #777;">Hash de verificación: <code>${cert.qr_hash}</code></p>
+          </div>
+
+          <div class="footer">
+            <p>EcoSave Market &mdash; Comprometidos con la reducción del desperdicio alimentario</p>
+            <p>📧 contacto@ecosavemarket.com &nbsp;|&nbsp; 🌐 <a href="http://www.ecosavemarket.com">www.ecosavemarket.com</a></p>
+            <p style="margin-top:10px;">Este es un correo automático, por favor no responder.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `
+  }
+
+  /**
    * Envía email de prueba
    */
   async sendTestEmail(to: string): Promise<boolean> {

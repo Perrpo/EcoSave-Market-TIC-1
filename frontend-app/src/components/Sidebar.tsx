@@ -50,6 +50,7 @@ const Sidebar: React.FC = () => {
       ]
     : [
         { to: '/dashboard', label: 'Dashboard Supermercado', icon: '🛒' },
+        { to: '/certificates', label: 'Certificados', icon: '📜' },
         { to: '/map', label: 'Mapa de ONGs', icon: '🗺️' },
         { to: '/notifications', label: 'Notificaciones', icon: '🔔', badge: unreadCount },
       ]

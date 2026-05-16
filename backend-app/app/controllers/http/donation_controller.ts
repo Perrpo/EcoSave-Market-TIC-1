@@ -1,5 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import supabaseService from '#services/supabase_service'
+import certificateGeneratorService from '#services/certificate_generator_service'
+import emailService from '#services/email_service'
 
 export default class DonationController {
   /**
@@ -290,10 +292,30 @@ export default class DonationController {
         })
       }
 
+      // ── Generar certificado automáticamente ──────────────────────────
+      let certificate: Record<string, unknown> | null = null
+      try {
+        certificate = await certificateGeneratorService.createCertificate(Number(id), accessToken)
+      } catch (certErr) {
+        console.error('Error generando certificado (no bloquea la confirmación):', certErr)
+      }
+
+      // ── Enviar email al supermercado con el certificado adjunto ──────
+      if (certificate) {
+        try {
+          await emailService.sendDonationCertificateEmail(
+            String(certificate.id),
+            donation.user_id
+          )
+        } catch (mailErr) {
+          console.error('Error enviando email de certificado:', mailErr)
+        }
+      }
+
       return response.ok({
         success: true,
         message: 'Donación confirmada exitosamente',
-        data: updatedDonation,
+        data: { ...updatedDonation, certificate },
       })
     } catch (error) {
       return response.internalServerError({

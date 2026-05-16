@@ -145,6 +145,51 @@ class ApiService {
     return this.request(`/donations/stats?${queryParams}`);
   }
 
+  // Certificados - TSK-011
+  async getCertificates(params?: Record<string, string | number>) {
+    const queryParams = new URLSearchParams()
+    if (params) {
+      Object.entries(params).forEach(([k, v]) => {
+        if (v !== undefined && v !== '') queryParams.append(k, String(v))
+      })
+    }
+    return this.request(`/certificates?${queryParams}`)
+  }
+
+  async getCertificate(id: string) {
+    return this.request(`/certificates/${id}`)
+  }
+
+  async generateCertificate(donationId: number) {
+    return this.request('/certificates/generate', {
+      method: 'POST',
+      body: JSON.stringify({ donation_id: donationId }),
+    })
+  }
+
+  async downloadCertificate(id: string, codigoCertificado: string) {
+    const token = localStorage.getItem('token')
+    const response = await fetch(`${API_BASE_URL}/certificates/${id}/download`, {
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    })
+    if (!response.ok) throw new Error('Error al descargar certificado')
+    const blob = await response.blob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `certificado-${codigoCertificado}.pdf`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  async verifyCertificate(hash: string) {
+    return this.request(`/certificates/verify/${hash}`)
+  }
+
   // Auth
   async login(email: string, password: string) {
     return this.request('/auth/login', {

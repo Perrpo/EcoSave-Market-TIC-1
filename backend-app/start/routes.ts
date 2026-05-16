@@ -52,6 +52,18 @@ router.group(() => {
     router.post('/:id/confirm', '#controllers/http/donation_controller.confirm')
   }).prefix('donations')
 
+  // Migración de BD — solo en development, uso único (TSK-011 + TSK-017)
+  router.post('/migrate', '#controllers/http/migration_controller.run')
+
+  // Certificates - TSK-011: Repositorio digital de certificados: Repositorio digital de certificados
+  router.group(() => {
+    router.get('/', '#controllers/http/certificate_controller.index')
+    router.get('/verify/:hash', '#controllers/http/certificate_controller.verify')
+    router.get('/:id', '#controllers/http/certificate_controller.show')
+    router.post('/generate', '#controllers/http/certificate_controller.generate')
+    router.get('/:id/download', '#controllers/http/certificate_controller.download')
+  }).prefix('certificates')
+
   // Locations (ONGs)
   router.group(() => {
     router.get('/', '#controllers/http/location_controller.index')
