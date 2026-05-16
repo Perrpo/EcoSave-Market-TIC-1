@@ -127,6 +127,16 @@ const DashboardONG: React.FC = () => {
       const response = await apiService.confirmDonation(requestId);
 
       if (response.success) {
+        // Generar certificado automáticamente al completar la donación
+        try {
+          const request = requestHistory.find(r => r.id === requestId)
+          if (request) {
+            await apiService.generateCertificate(Number(requestId))
+          }
+        } catch (certErr) {
+          console.warn('No se pudo generar el certificado automáticamente:', certErr)
+        }
+
         // Send notification
         const request = requestHistory.find(r => r.id === requestId);
         if (request) {

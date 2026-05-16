@@ -7,7 +7,7 @@ import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
 import DashboardONG from './pages/DashboardONG';
 import DashboardAdmin from './pages/DashboardAdmin';
-import Map from './pages/Map';
+import CertificateRepository from './pages/CertificateRepository';
 import Notifications from './pages/Notifications';
 
 const AppContent: React.FC = () => {
@@ -36,6 +36,7 @@ const AppContent: React.FC = () => {
           <Route path="/" element={<Navigate to={getDefaultRoute()} replace />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/dashboard-ong" element={<DashboardONG />} />
+          <Route path="/certificates" element={<CertificateRepository />} />
           <Route path="/dashboard-admin" element={<DashboardAdmin />} />
           <Route path="/map" element={<Map />} />
           <Route path="/notifications" element={<Notifications />} />

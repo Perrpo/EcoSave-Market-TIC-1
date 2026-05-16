@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useNotifications } from '../context/NotificationContext'
 import apiService from '../services/api'
@@ -71,12 +72,14 @@ interface Donation {
 const Dashboard: React.FC = () => {
   const auth = useAuth();
   const { addNotification } = useNotifications();
+  const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [donations, setDonations] = useState<Donation[]>([]);
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [showDonationHistory, setShowDonationHistory] = useState(false);
   const [activeTab, setActiveTab] = useState<'productos' | 'historial'>('productos');
   const [isLoading, setIsLoading] = useState(false);
+  const [downloadingDonationId, setDownloadingDonationId] = useState<string | null>(null);
   const [newProduct, setNewProduct] = useState({
     nombre: '',
     categoria: '',
@@ -223,6 +226,44 @@ const Dashboard: React.FC = () => {
     } catch (error) {
       console.error('Error updating product:', error);
       alert('Error al actualizar producto. Inténtalo de nuevo.');
+    }
+  };
+
+  const handleDownloadDonationPDF = async (donation: Donation) => {
+    // Find matching certificate by donation_id and download it
+    setDownloadingDonationId(donation.id);
+    try {
+      const certsResponse = await apiService.getCertificates({ limit: 1, offset: 0 });
+      // Search for a certificate matching this donation
+      const API_BASE_URL = 'http://localhost:3333/api/v1';
+      const token = localStorage.getItem('token');
+      // Fetch all certificates and find the one for this donation
+      const allCerts = await apiService.getCertificates({ limit: 100, offset: 0 });
+      const certs = (allCerts.data as any[]) || [];
+      const cert = certs.find((c: any) => c.donation_id === Number(donation.id) || String(c.donation_id) === donation.id);
+      if (!cert) {
+        alert('El certificado aún no está disponible. Inténtalo en unos momentos.');
+        return;
+      }
+      // Download PDF
+      const response = await fetch(`${API_BASE_URL}/certificates/${cert.id}/download`, {
+        headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      });
+      if (!response.ok) throw new Error('Error al descargar');
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `certificado-${cert.codigo_certificado}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error descargando certificado:', error);
+      alert('Error al descargar el certificado. Inténtalo de nuevo.');
+    } finally {
+      setDownloadingDonationId(null);
     }
   };
 
@@ -501,10 +542,29 @@ const Dashboard: React.FC = () => {
                       <p>Fecha: {new Date(donation.created_at).toLocaleDateString()}</p>
                       <p>ONG: {donation.ong_id || 'Pendiente'}</p>
                     </div>
-                    <div className="donation-status">
+                    <div className="donation-status" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
                       <span className={`badge ${donation.status}`}>
-                        {donation.status === 'completed' ? 'Completada' : 'Pendiente'}
+                        {donation.status === 'completed' ? 'Completada' : donation.status === 'requested' ? 'Solicitada' : 'Disponible'}
                       </span>
+                      {donation.status === 'completed' && (
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button
+                            className="btn-primary"
+                            style={{ fontSize: '12px', padding: '4px 10px' }}
+                            onClick={() => { setShowDonationHistory(false); navigate('/certificates'); }}
+                          >
+                            📜 Ver Certificado
+                          </button>
+                          <button
+                            className="descuento"
+                            style={{ fontSize: '12px', padding: '4px 10px' }}
+                            onClick={() => handleDownloadDonationPDF(donation)}
+                            disabled={downloadingDonationId === donation.id}
+                          >
+                            {downloadingDonationId === donation.id ? '⏳' : '⬇️ PDF'}
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))
