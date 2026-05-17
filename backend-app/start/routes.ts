@@ -7,6 +7,7 @@
 |
 */
 import router from '@adonisjs/core/services/router'
+import { middleware } from './kernel.js'
 
 // Root route
 router.get('/', async () => {
@@ -67,9 +68,7 @@ router.group(() => {
   // Auth
   router.post('auth/register', '#controllers/http/auth_controller.register')
   router.post('auth/login', '#controllers/http/auth_controller.login')
-  // TODO: Register 'auth' middleware in start/kernel.ts before uncommenting
-  // router.post('auth/logout', '#controllers/http/auth_controller.logout').middleware('auth')
-  router.post('auth/logout', '#controllers/http/auth_controller.logout')
+  router.post('auth/logout', '#controllers/http/auth_controller.logout').middleware(middleware.auth())
   
   // Orders - RPA Processing System
   router.group(() => {
