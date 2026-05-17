@@ -1,13 +1,23 @@
+import OrderService from '#services/order_service'
+import EmailLogRepository from '#repositories/email_log_repository'
+import supabaseService from '#services/supabase_service'
 import nodemailer from 'nodemailer'
 import type { Transporter } from 'nodemailer'
 import invoiceGeneratorService from '#services/invoice_generator_service'
-import supabaseService from '#services/supabase_service'
 
 /**
  * Servicio para envío de emails
  */
+/**
+ * ARQUITECTURA POR CAPAS:
+ * - EmailService usa OrderService para obtener datos de órdenes.
+ * - NO instancia OrderRepository directamente.
+ * - EmailLogRepository sí se instancia aquí porque no tiene un servicio propio
+ *   dedicado — es un repositorio auxiliar de logging sin lógica de negocio.
+ */
 class EmailService {
   private transporter: Transporter | null = null
+  private orderService = new OrderService()
 
   /**
    * Inicializa el transportador de email
@@ -46,14 +56,8 @@ class EmailService {
         throw new Error('Email transporter not initialized')
       }
 
-      const supabase = supabaseService.getClient(undefined, true)
-      
-      // Obtener datos de la orden
-      const { data: order, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('id', orderId)
-        .single()
+      // Delegamos a OrderService — respetamos la capa de servicio
+      const { data: order, error } = await this.orderService.getOrderById(undefined, orderId)
 
       if (error || !order) {
         throw new Error('Orden no encontrada')
@@ -183,13 +187,10 @@ class EmailService {
       await this.initTransporter()
       if (!this.transporter) return false
 
-      const supabase = supabaseService.getClient(undefined, true)
-      
-      const { data: order, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('id', orderId)
-        .single()
+   
+
+      // Delegamos a OrderService — respetamos la capa de servicio
+      const { data: order, error } = await this.orderService.getOrderById(undefined, orderId)
 
       if (error || !order) return false
 
@@ -297,13 +298,13 @@ class EmailService {
     emailType: string
   ): Promise<void> {
     try {
-      const supabase = supabaseService.getClient(undefined, true)
+      const client = supabaseService.getClient(undefined, true)
+      const emailLogRepository = new EmailLogRepository(client)
       
-      await supabase.from('email_logs').insert({
+      await emailLogRepository.create({
         order_id: orderId,
         recipient,
         email_type: emailType,
-        sent_at: new Date().toISOString(),
         status: 'sent',
       })
     } catch (error) {

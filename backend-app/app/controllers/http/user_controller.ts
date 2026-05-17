@@ -1,13 +1,15 @@
 import type { HttpContext } from '@adonisjs/core/http'
-import SupabaseService from '#services/supabase_service'
+import UserService from '#services/user_service'
 
 export default class UserController {
+  private userService: UserService
+
+  constructor() {
+    this.userService = new UserService()
+  }
+
   public async index({ response }: HttpContext) {
-    const supabase = SupabaseService.getClient()
-    
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
+    const { data, error } = await this.userService.getUsers()
     
     if (error) {
       return response.status(400).json({ error: error.message })
@@ -17,13 +19,9 @@ export default class UserController {
   }
   
   public async store({ request, response }: HttpContext) {
-    const supabase = SupabaseService.getClient()
     const body = request.only(['name', 'email'])
     
-    const { data, error } = await supabase
-      .from('users')
-      .insert([body])
-      .select()
+    const { data, error } = await this.userService.createUser(body)
     
     if (error) {
       return response.status(400).json({ error: error.message })

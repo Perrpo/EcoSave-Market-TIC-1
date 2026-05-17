@@ -172,6 +172,33 @@ class ApiService {
       method: 'POST',
     });
   }
+
+  // Notificaciones
+  async getNotifications(params?: { limit?: number; offset?: number }) {
+    const queryParams = new URLSearchParams();
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.offset) queryParams.append('offset', params.offset.toString());
+
+    return this.request(`/notifications?${queryParams}`);
+  }
+
+  async markNotificationAsRead(id: string) {
+    return this.request(`/notifications/${id}/read`, {
+      method: 'POST',
+    });
+  }
+
+  async markAllNotificationsAsRead() {
+    return this.request('/notifications/mark-all-read', {
+      method: 'POST',
+    });
+  }
+
+  async clearAllNotifications() {
+    return this.request('/notifications/clear-all', {
+      method: 'POST',
+    });
+  }
 }
 
 export const apiService = new ApiService();

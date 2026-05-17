@@ -11,21 +11,45 @@ import Map from './pages/Map';
 import Notifications from './pages/Notifications';
 
 const AppContent: React.FC = () => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, isReady } = useAuth();
 
-  if (!isAuthenticated) {
+  // Esperar a que se restaure la sesión desde localStorage
+  if (!isReady) {
+    return (
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        background: 'var(--bg, #F8F9FA)',
+        color: 'var(--ink, #333)',
+        fontFamily: 'Inter, system-ui, sans-serif',
+      }}>
+        <p>Cargando...</p>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated || !user) {
     return <AuthForm />;
   }
 
-  // Role-based routing
+  // Role-based default route
   const getDefaultRoute = () => {
-    if (user?.role === 'admin') {
-      return '/dashboard-admin';
+    switch (user.role) {
+      case 'admin': return '/dashboard-admin';
+      case 'ong': return '/dashboard-ong';
+      default: return '/dashboard';
     }
-    if (user?.role === 'ong') {
-      return '/dashboard-ong';
+  };
+
+  // Role-based route protection
+  const getDashboardForRole = () => {
+    switch (user.role) {
+      case 'admin': return <DashboardAdmin />;
+      case 'ong': return <DashboardONG />;
+      default: return <Dashboard />;
     }
-    return '/dashboard';
   };
 
   return (
@@ -34,11 +58,26 @@ const AppContent: React.FC = () => {
       <main className="main-content">
         <Routes>
           <Route path="/" element={<Navigate to={getDefaultRoute()} replace />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/dashboard-ong" element={<DashboardONG />} />
-          <Route path="/dashboard-admin" element={<DashboardAdmin />} />
+          
+          {/* Cada rol ve SU dashboard, si intenta acceder al de otro rol se redirige */}
+          <Route
+            path="/dashboard"
+            element={user.role === 'supermarket' ? <Dashboard /> : <Navigate to={getDefaultRoute()} replace />}
+          />
+          <Route
+            path="/dashboard-ong"
+            element={user.role === 'ong' ? <DashboardONG /> : <Navigate to={getDefaultRoute()} replace />}
+          />
+          <Route
+            path="/dashboard-admin"
+            element={user.role === 'admin' ? <DashboardAdmin /> : <Navigate to={getDefaultRoute()} replace />}
+          />
+
+          {/* Rutas comunes */}
           <Route path="/map" element={<Map />} />
           <Route path="/notifications" element={<Notifications />} />
+
+          {/* Fallback: redirige al dashboard correcto */}
           <Route path="*" element={<Navigate to={getDefaultRoute()} replace />} />
         </Routes>
       </main>

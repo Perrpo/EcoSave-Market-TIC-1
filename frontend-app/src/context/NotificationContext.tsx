@@ -1,114 +1,104 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
+import apiService from '../services/api';
+import { useAuth } from './AuthContext';
 
 interface Notification {
-  id: string;
-  type: 'product_added' | 'donation_completed' | 'donation_requested' | 'product_expiring' | 'new_user_registered' | 'admin_system_update' | 'user_role_changed';
+  id: number;
+  type: string;
   title: string;
   message: string;
-  timestamp: Date;
-  read: boolean;
+  created_at: string;
+  is_read: boolean;
+  urgent: boolean;
+  product_id?: number;
 }
 
 interface NotificationContextType {
   notifications: Notification[];
-  addNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void;
-  markAsRead: (id: string) => void;
-  clearAll: () => void;
+  addNotification: (notification: any) => void;
+  markAsRead: (id: number) => Promise<void>;
+  markAllAsRead: () => Promise<void>;
+  clearAll: () => Promise<void>;
   unreadCount: number;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
 export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Notificaciones de ejemplo iniciales para que ningún rol tenga el panel vacío
-  const initialNotifications: Notification[] = [
-    // Notificaciones comunes para todos los roles
-    {
-      id: '1',
-      type: 'product_expiring',
-      title: 'Productos próximos a vencer',
-      message: 'Tienes 5 productos que vencerán en los próximos 3 días',
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // Hace 2 horas
-      read: false,
-    },
-    {
-      id: '2',
-      type: 'donation_completed',
-      title: 'Donación completada',
-      message: 'La donación de productos lácteos ha sido recogida exitosamente',
-      timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000), // Hace 5 horas
-      read: false,
-    },
-    {
-      id: '3',
-      type: 'donation_requested',
-      title: 'Nueva solicitud de donación',
-      message: 'Fundación Esperanza ha solicitado productos de tu inventario',
-      timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000), // Hace 1 día
-      read: true,
-    },
-    {
-      id: '4',
-      type: 'product_added',
-      title: 'Nuevo producto agregado',
-      message: 'Se han agregado 20 unidades de pan integral al inventario',
-      timestamp: new Date(Date.now() - 48 * 60 * 60 * 1000), // Hace 2 días
-      read: true,
-    },
-    // Notificaciones específicas para administradores
-    {
-      id: '5',
-      type: 'new_user_registered',
-      title: 'Nuevo usuario registrado',
-      message: 'Supermercado La Buena Comida se ha unido a la plataforma',
-      timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000), // Hace 3 horas
-      read: false,
-    },
-    {
-      id: '6',
-      type: 'admin_system_update',
-      title: 'Actualización del sistema',
-      message: 'El sistema ha sido actualizado a la versión 2.1.0 con mejoras de rendimiento',
-      timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000), // Hace 12 horas
-      read: false,
-    },
-    {
-      id: '7',
-      type: 'user_role_changed',
-      title: 'Cambio de rol',
-      message: 'El usuario maria@ong.org ha sido asignado como coordinadora de ONG',
-      timestamp: new Date(Date.now() - 36 * 60 * 60 * 1000), // Hace 1.5 días
-      read: true,
-    },
-  ];
+  const { isAuthenticated, user } = useAuth();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
-  const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
-
-  const addNotification = (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
-    const newNotification: Notification = {
-      ...notification,
-      id: Date.now().toString(),
-      timestamp: new Date(),
-      read: false,
-    };
+  const fetchNotifications = async () => {
+    if (!isAuthenticated || !user) return;
     
-    setNotifications(prev => [newNotification, ...prev]);
+    try {
+      const response = await apiService.getNotifications({ limit: 50 }) as any;
+      if (response.success && response.data) {
+        setNotifications(response.data as Notification[]);
+        setUnreadCount(response.unreadCount || 0);
+      }
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
   };
 
-  const markAsRead = (id: string) => {
-    setNotifications(prev => 
-      prev.map(notification => 
-        notification.id === id ? { ...notification, read: true } : notification
-      )
-    );
+  // Poll for notifications every 30 seconds
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchNotifications();
+      const intervalId = setInterval(fetchNotifications, 30000);
+      return () => clearInterval(intervalId);
+    } else {
+      setNotifications([]);
+      setUnreadCount(0);
+    }
+  }, [isAuthenticated, user?.id]);
+
+  // Esta función ahora solo agrega localmente y dispara una recarga
+  const addNotification = () => {
+    fetchNotifications();
   };
 
-  const clearAll = () => {
-    setNotifications([]);
+  const markAsRead = async (id: number) => {
+    try {
+      // Optimistic update
+      setNotifications(prev => 
+        prev.map(notification => 
+          notification.id === id ? { ...notification, is_read: true } : notification
+        )
+      );
+      setUnreadCount(prev => Math.max(0, prev - 1));
+      
+      await apiService.markNotificationAsRead(id.toString());
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      fetchNotifications(); // Revert on failure
+    }
   };
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const markAllAsRead = async () => {
+    try {
+      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+      setUnreadCount(0);
+      await apiService.markAllNotificationsAsRead();
+    } catch (error) {
+      console.error('Error marking all as read:', error);
+      fetchNotifications();
+    }
+  };
+
+  const clearAll = async () => {
+    try {
+      setNotifications([]);
+      setUnreadCount(0);
+      await apiService.clearAllNotifications();
+    } catch (error) {
+      console.error('Error clearing notifications:', error);
+      fetchNotifications();
+    }
+  };
 
   return (
     <NotificationContext.Provider
@@ -116,6 +106,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
         notifications,
         addNotification,
         markAsRead,
+        markAllAsRead,
         clearAll,
         unreadCount,
       }}

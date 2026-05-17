@@ -10,7 +10,7 @@ const SettingsIcon = () => (
 )
 
 const Notifications: React.FC = () => {
-  const { notifications, markAsRead, clearAll, unreadCount } = useNotifications()
+  const { notifications, markAsRead, markAllAsRead, clearAll, unreadCount } = useNotifications()
 
   const getTypeClass = (type: string) => {
     switch (type) {
@@ -51,8 +51,8 @@ const Notifications: React.FC = () => {
     return `Hace ${days} día${days > 1 ? 's' : ''}`
   }
 
-  const markAllAsRead = () => {
-    notifications.forEach((n) => !n.read && markAsRead(n.id))
+  const handleMarkAllAsRead = async () => {
+    await markAllAsRead()
   }
 
   return (
@@ -65,7 +65,7 @@ const Notifications: React.FC = () => {
       <div className="action-card">
         <span className="badge-unread">{unreadCount} sin leer</span>
         <div className="action-buttons">
-          <button className="ghost-btn" onClick={markAllAsRead} disabled={unreadCount === 0}>
+          <button className="ghost-btn" onClick={handleMarkAllAsRead} disabled={unreadCount === 0}>
             Marcar todas como leídas
           </button>
           <button className="outline-danger" onClick={clearAll} disabled={notifications.length === 0}>
@@ -118,10 +118,10 @@ const Notifications: React.FC = () => {
                       </span>
                     </div>
                     <div className="notification-body">{notification.message}</div>
-                    <div className="notification-footer">{formatTimestamp(notification.timestamp)}</div>
+                    <div className="notification-footer">{formatTimestamp(new Date(notification.created_at))}</div>
                   </div>
                   <div className="notif-action">
-                    {!notification.read && (
+                    {!notification.is_read && (
                       <button className="icon-btn" title="Marcar como leído" onClick={() => markAsRead(notification.id)}>
                         ✔
                       </button>

@@ -34,9 +34,11 @@ class SupabaseService {
     }
 
     const key = supabaseConfig.anonKey || supabaseConfig.serviceKey
-    const headers = accessToken
-      ? { Authorization: `Bearer ${accessToken}` }
-      : undefined
+    if (!accessToken) {
+      return this.anonClient
+    }
+
+    const headers = { Authorization: `Bearer ${accessToken}` }
 
     return createClient(supabaseConfig.url, key, {
       auth: { persistSession: false },

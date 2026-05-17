@@ -4,8 +4,14 @@ import orderValidatorService from '#services/order_validator_service'
 import invoiceGeneratorService from '#services/invoice_generator_service'
 import emailService from '#services/email_service'
 import supabaseService from '#services/supabase_service'
+import OrderService from '#services/order_service'
 
 export default class OrderController {
+  private orderService: OrderService
+
+  constructor() {
+    this.orderService = new OrderService()
+  }
   /**
    * Procesa una orden específica
    * POST /api/v1/orders/:id/process
@@ -231,19 +237,14 @@ export default class OrderController {
   async index({ request, response }: HttpContext) {
     try {
       const { status, limit = 50, offset = 0 } = request.qs()
+      const accessToken = supabaseService.getAccessToken(request.header('Authorization'))
       
-      const supabase = supabaseService.getClient()
-      let query = supabase
-        .from('orders')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .range(offset, offset + limit - 1)
-
-      if (status) {
-        query = query.eq('status', status)
-      }
-
-      const { data: orders, error } = await query
+      const { data: orders, error } = await this.orderService.getOrders(
+        accessToken,
+        Number(limit),
+        Number(offset),
+        status as string | undefined
+      )
 
       if (error) {
         return response.badRequest({
@@ -257,8 +258,8 @@ export default class OrderController {
         success: true,
         data: orders,
         pagination: {
-          limit,
-          offset,
+          limit: Number(limit),
+          offset: Number(offset),
           total: orders?.length || 0,
         },
       })
@@ -275,16 +276,12 @@ export default class OrderController {
    * Obtiene una orden específica
    * GET /api/v1/orders/:id
    */
-  async show({ params, response }: HttpContext) {
+  async show({ params, request, response }: HttpContext) {
     try {
       const { id } = params
-      const supabase = supabaseService.getClient()
+      const accessToken = supabaseService.getAccessToken(request.header('Authorization'))
 
-      const { data: order, error } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('id', id)
-        .single()
+      const { data: order, error } = await this.orderService.getOrderById(accessToken, id)
 
       if (error || !order) {
         return response.notFound({
@@ -322,17 +319,9 @@ export default class OrderController {
         'shipping_address',
       ])
 
-      const supabase = supabaseService.getClient()
+      const accessToken = supabaseService.getAccessToken(request.header('Authorization'))
 
-      const { data: order, error } = await supabase
-        .from('orders')
-        .insert({
-          ...orderData,
-          status: 'pending',
-          created_at: new Date().toISOString(),
-        })
-        .select()
-        .single()
+      const { data: order, error } = await this.orderService.createOrder(accessToken, orderData)
 
       if (error) {
         return response.badRequest({

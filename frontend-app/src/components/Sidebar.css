@@ -3,8 +3,8 @@
   top: 0;
   height: 100vh;
   width: 280px;
-  background: #ffffff;
-  border-right: 1px solid #e6e1d9;
+  background: #F8F9FA;
+  border-right: 1px solid #E9ECEF;
   display: flex;
   flex-direction: column;
   padding: 18px;
@@ -29,27 +29,32 @@
 }
 
 .logo-mark svg {
-  color: #1a7a4a;
+  color: #2D5A27;
 }
 
 .brand-name {
   margin: 0;
   font-weight: 800;
-  color: #1a7a4a;
+  color: #2D5A27;
 }
 
 .brand-sub {
   margin: 2px 0 0;
-  color: #6f6f6c;
+  color: #6c757d;
   font-size: 13px;
 }
 
 .collapse-btn {
-  border: 1px solid #e6e1d9;
-  background: #f7f6f2;
+  border: 1px solid #E9ECEF;
+  background: #F8F9FA;
   border-radius: 10px;
   padding: 6px 10px;
   cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.collapse-btn:hover {
+  background: #E9ECEF;
 }
 
 .nav-links {
@@ -65,25 +70,30 @@
   gap: 10px;
   padding: 12px 14px;
   border-radius: 12px;
-  color: #4a4a48;
+  color: #333333;
   text-decoration: none;
   font-weight: 600;
   border: 1px solid transparent;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
 }
 
 .nav-link .nav-icon {
   font-size: 18px;
 }
 
+.nav-link:hover {
+  background: #e8f5e4;
+}
+
 .nav-link.active {
-  background: #f0f7f2;
-  border-color: #cfe7d7;
-  color: #1a7a4a;
+  background: #e8f5e4;
+  border-color: #c0e0b8;
+  color: #2D5A27;
 }
 
 .pill {
   margin-left: auto;
-  background: #e07b39;
+  background: #F58220;
   color: #fff;
   border-radius: 999px;
   padding: 2px 8px;
@@ -93,7 +103,7 @@
 
 .sidebar-footer {
   margin-top: auto;
-  border-top: 1px solid #e6e1d9;
+  border-top: 1px solid #E9ECEF;
   padding-top: 12px;
 }
 
@@ -107,8 +117,8 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: #f0f7f2;
-  color: #1a7a4a;
+  background: #e8f5e4;
+  color: #2D5A27;
   display: grid;
   place-items: center;
   font-weight: 800;
@@ -126,14 +136,14 @@
 
 .chip-sub {
   margin: 0;
-  color: #6f6f6c;
+  color: #6c757d;
   font-size: 13px;
 }
 
 .icon-btn {
   border: none;
   background: transparent;
-  color: #4a4a48;
+  color: #333333;
   cursor: pointer;
 }
 
@@ -142,8 +152,8 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: #ffffff;
-  border-top: 1px solid #e6e1d9;
+  background: #F8F9FA;
+  border-top: 1px solid #E9ECEF;
   display: none;
   grid-template-columns: repeat(3, 1fr);
   padding: 6px;

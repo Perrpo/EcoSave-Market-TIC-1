@@ -9,14 +9,14 @@ const Logo = ({ size = 28 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden="true" className="logo-mark">
     <defs>
       <linearGradient id="leaf" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop stopColor="#1a7a4a" offset="0%" />
-        <stop stopColor="#24b26e" offset="100%" />
+        <stop stopColor="#2D5A27" offset="0%" />
+        <stop stopColor="#8DC63F" offset="100%" />
       </linearGradient>
     </defs>
     <path d="M12 34c0-14.36 11.64-26 26-26h14c0 14.36-11.64 26-26 26H12z" fill="url(#leaf)" />
-    <path d="M38 6c-7 10-10 20-10 30 6-6 11-13 18-18" stroke="#f7f6f2" strokeWidth="4" strokeLinecap="round" fill="none" />
-    <path d="M29 52c0-6 5-11 11-11h4l-4-4" stroke="#1a7a4a" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    <circle cx="45" cy="41" r="2.5" fill="#e07b39" />
+    <path d="M38 6c-7 10-10 20-10 30 6-6 11-13 18-18" stroke="#F8F9FA" strokeWidth="4" strokeLinecap="round" fill="none" />
+    <path d="M29 52c0-6 5-11 11-11h4l-4-4" stroke="#2D5A27" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    <circle cx="45" cy="41" r="2.5" fill="#F58220" />
   </svg>
 )
 
@@ -64,8 +64,10 @@ const AuthForm: React.FC = () => {
       if (tab === 'login') {
         result = await auth.login(email, password, loginRole)
         if (result.success) {
-          if (auth.user?.role === 'admin') navigate('/dashboard-admin')
-          else if (auth.user?.role === 'ong') navigate('/dashboard-ong')
+          // Usar el usuario retornado directamente, no auth.user que puede estar desactualizado
+          const loggedUser = result.user
+          if (loggedUser?.role === 'admin') navigate('/dashboard-admin')
+          else if (loggedUser?.role === 'ong') navigate('/dashboard-ong')
           else navigate('/dashboard')
         } else {
           setError(result.error || 'Error desconocido')

@@ -31,6 +31,12 @@
   border: 1px solid var(--stroke);
   border-radius: 10px;
   padding: 10px 12px;
+  transition: border-color 120ms ease;
+}
+
+.search-box:focus-within {
+  border-color: #2D5A27;
+  box-shadow: 0 0 0 3px rgba(45, 90, 39, 0.08);
 }
 
 .search-box input {
@@ -39,6 +45,7 @@
   width: 100%;
   font-size: 1rem;
   background: transparent;
+  color: var(--ink);
 }
 
 .filter-row {
@@ -56,12 +63,18 @@
   cursor: pointer;
   font-weight: 700;
   color: var(--ink);
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.pill:hover {
+  border-color: #2D5A27;
+  color: #2D5A27;
 }
 
 .pill.active {
-  background: #1a7a4a;
+  background: #2D5A27;
   color: #fff;
-  border-color: #1a7a4a;
+  border-color: #2D5A27;
 }
 
 .grid {
@@ -76,6 +89,12 @@
   padding: 16px;
   background: var(--card);
   box-shadow: var(--shadow-1);
+  transition: box-shadow 180ms ease, transform 180ms ease;
+}
+
+.ong-card:hover {
+  box-shadow: var(--shadow-2);
+  transform: translateY(-2px);
 }
 
 .ong-head {
@@ -106,8 +125,8 @@
 }
 
 .tag {
-  background: #e6f3eb;
-  color: #1a7a4a;
+  background: #e8f5e4;
+  color: #2D5A27;
   padding: 6px 10px;
   border-radius: 10px;
   font-size: 0.85rem;

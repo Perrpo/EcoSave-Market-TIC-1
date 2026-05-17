@@ -24,24 +24,23 @@ router.group(() => {
     return { status: 'ok' }
   })
 
-  // Supabase connection test
-  router.get('/supabase/test', '#controllers/http/supabase_test_controller.testConnection')
-  router.get('/supabase/info', '#controllers/http/supabase_test_controller.info')
-
   // Users
   router.resource('users', '#controllers/http/user_controller').apiOnly()
   
   // Products
+  // IMPORTANTE: Las rutas estáticas (/available) deben ir ANTES que las dinámicas (/:id)
+  // para evitar que "available" sea interpretado como un parámetro :id.
   router.group(() => {
     router.get('/', '#controllers/http/product_controller.index')
     router.post('/', '#controllers/http/product_controller.store')
+    router.get('/available', '#controllers/http/product_controller.getAvailable')
     router.get('/:id', '#controllers/http/product_controller.show')
     router.put('/:id', '#controllers/http/product_controller.update')
     router.delete('/:id', '#controllers/http/product_controller.destroy')
-    router.get('/available', '#controllers/http/product_controller.getAvailable')
   }).prefix('products')
   
   // Donations
+  // IMPORTANTE: Las rutas estáticas (/available, /stats) deben ir ANTES que las dinámicas (/:id)
   router.group(() => {
     router.get('/', '#controllers/http/donation_controller.index')
     router.post('/', '#controllers/http/donation_controller.store')
@@ -56,6 +55,14 @@ router.group(() => {
   router.group(() => {
     router.get('/', '#controllers/http/location_controller.index')
   }).prefix('locations')
+  
+  // Notifications
+  router.group(() => {
+    router.get('/', '#controllers/http/notification_controller.index')
+    router.post('/mark-all-read', '#controllers/http/notification_controller.markAllAsRead')
+    router.post('/clear-all', '#controllers/http/notification_controller.clearAll')
+    router.post('/:id/read', '#controllers/http/notification_controller.markAsRead')
+  }).prefix('notifications')
   
   // Auth
   router.post('auth/register', '#controllers/http/auth_controller.register')

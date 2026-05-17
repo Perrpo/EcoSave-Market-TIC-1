@@ -13,11 +13,12 @@
 .dashboard-header input[type="search"],
 .dashboard-header .search-input {
   background: #ffffff;
-  border: 1.5px solid #d1d5db;
-  color: #1a1a1a;
+  border: 1.5px solid #E9ECEF;
+  color: #333333;
   border-radius: 8px;
   padding: 8px 12px 8px 36px;
   font-size: 0.95rem;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
 }
 
 .dashboard-header input[type="search"]::placeholder,
@@ -28,8 +29,8 @@
 .dashboard-header input[type="search"]:focus,
 .dashboard-header .search-input:focus {
   outline: none;
-  border-color: #1a7a4a;
-  box-shadow: 0 0 0 3px rgba(26, 122, 74, 0.15);
+  border-color: #2D5A27;
+  box-shadow: 0 0 0 3px rgba(45, 90, 39, 0.12);
 }
 
 .main-title {
@@ -66,6 +67,12 @@
   border-radius: 50%;
   border: 1px solid var(--stroke);
   background: var(--card);
+  cursor: pointer;
+  transition: border-color 120ms ease;
+}
+
+.bell-btn:hover {
+  border-color: #F58220;
 }
 
 .bell-btn .pill {
@@ -95,10 +102,16 @@
   display: flex;
   gap: 12px;
   align-items: center;
+  transition: box-shadow 180ms ease, transform 180ms ease;
+}
+
+.stat-box:hover {
+  box-shadow: var(--shadow-1);
+  transform: translateY(-2px);
 }
 
 .stat-icon {
-  color: #6f6f6c;
+  color: #6c757d;
 }
 
 .stat-title {
@@ -109,6 +122,7 @@
 .stat-value {
   font-weight: 800;
   font-size: 2rem;
+  color: var(--ink);
 }
 
 .tab-bar {
@@ -124,11 +138,12 @@
   color: var(--muted);
   border-bottom: 2px solid transparent;
   cursor: pointer;
+  transition: color 120ms ease, border-color 120ms ease;
 }
 
 .tab-btn.active {
-  color: var(--primary);
-  border-color: var(--primary);
+  color: #2D5A27;
+  border-color: #2D5A27;
 }
 
 .content-divider {
@@ -157,6 +172,14 @@
   text-align: left;
 }
 
+.products-table th {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .tag {
   padding: 6px 10px;
   border-radius: 999px;
@@ -167,8 +190,8 @@
   gap: 6px;
 }
 
-.tag.green { background: #edf9f1; color: #1a7a4a; }
-.tag.orange { background: #fff4ec; color: #c65a13; }
+.tag.green { background: #e8f5e4; color: #2D5A27; }
+.tag.orange { background: #fef0e0; color: #c06a10; }
 .tag.red { background: #fde8e8; color: #c52233; }
 
 .actions-inline {
@@ -185,33 +208,39 @@
   border-radius: var(--radius-sm);
   cursor: pointer;
   font-weight: 700;
+  transition: transform 120ms ease, background 120ms ease;
 }
 
 .donar {
-  background: var(--primary);
+  background: #2D5A27;
   color: #fff;
+  border-color: #2D5A27;
 }
 
 .descuento {
-  background: var(--accent);
+  background: #F58220;
   color: #fff;
+  border-color: #F58220;
 }
 
 .donar:hover {
-  border-color: var(--primary-strong);
-  background: var(--primary-strong);
+  border-color: #1F3E1B;
+  background: #1F3E1B;
   color: #fff;
+  transform: translateY(-1px);
 }
 .descuento:hover {
-  border-color: #c86725;
-  background: #c86725;
+  border-color: #d96f15;
+  background: #d96f15;
   color: #fff;
+  transform: translateY(-1px);
 }
 
 .donar:disabled,
 .descuento:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  transform: none;
 }
 
 .no-products {
@@ -247,8 +276,8 @@
 }
 
 .alert-panel {
-  background: #f2f0eb;
-  border: 1px solid #e0ddd5;
+  background: #F8F9FA;
+  border: 1px solid #E9ECEF;
   height: 100%;
 }
 
@@ -280,6 +309,11 @@
   display: flex;
   justify-content: space-between;
   gap: 12px;
+  transition: box-shadow 180ms ease;
+}
+
+.product:hover {
+  box-shadow: var(--shadow-1);
 }
 
 .product-info .product-name {
@@ -325,15 +359,16 @@
 .form-group select {
   padding: 10px 14px;
   border-radius: 8px;
-  border: 1.5px solid #e5e7eb;
-  background: #f9fafb;
-  color: #111827;
+  border: 1.5px solid #E9ECEF;
+  background: #F8F9FA;
+  color: #333333;
   font-size: 0.9375rem;
   appearance: none;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
 }
 
 .form-group select {
-  background-image: linear-gradient(45deg, transparent 50%, #6b7280 50%), linear-gradient(135deg, #6b7280 50%, transparent 50%);
+  background-image: linear-gradient(45deg, transparent 50%, #6c757d 50%), linear-gradient(135deg, #6c757d 50%, transparent 50%);
   background-position: calc(100% - 18px) calc(50% - 3px), calc(100% - 12px) calc(50% - 3px);
   background-size: 6px 6px, 6px 6px;
   background-repeat: no-repeat;
@@ -346,9 +381,9 @@
 .form-group input:focus,
 .form-group select:focus {
   outline: none;
-  border-color: #1a7a4a;
+  border-color: #2D5A27;
   background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(26, 122, 74, 0.12);
+  box-shadow: 0 0 0 3px rgba(45, 90, 39, 0.12);
 }
 
 .modal-actions {
@@ -358,12 +393,17 @@
 }
 
 .btn-cancel {
-  border: 1.5px solid #e5e7eb;
+  border: 1.5px solid #E9ECEF;
   background: transparent;
   border-radius: 8px;
   padding: 10px 20px;
   cursor: pointer;
-  color: #6b7280;
+  color: #6c757d;
+  transition: border-color 120ms ease;
+}
+
+.btn-cancel:hover {
+  border-color: #333333;
 }
 
 .donation-list {

@@ -2,6 +2,8 @@ import orderValidatorService from '#services/order_validator_service'
 import invoiceGeneratorService from '#services/invoice_generator_service'
 import emailService from '#services/email_service'
 import supabaseService from '#services/supabase_service'
+import OrderRepository from '#repositories/order_repository'
+import ProductRepository from '#repositories/product_repository'
 
 interface ProcessingResult {
   success: boolean
@@ -93,14 +95,11 @@ class OrderProcessorService {
    */
   async processPendingOrders(): Promise<ProcessingResult[]> {
     try {
-      const supabase = supabaseService.getClient(undefined, true)
+      const client = supabaseService.getClient(undefined, true)
+      const orderRepository = new OrderRepository(client)
       
       // Obtener órdenes pendientes
-      const { data: orders, error } = await supabase
-        .from('orders')
-        .select('id')
-        .eq('status', 'pending')
-        .limit(10) // Procesar máximo 10 a la vez
+      const { data: orders, error } = await orderRepository.findAll(10, 0, 'pending')
 
       if (error || !orders || orders.length === 0) {
         console.log('📭 No pending orders to process')
@@ -134,15 +133,13 @@ class OrderProcessorService {
    */
   private async updateOrderStatus(orderId: string, status: string): Promise<void> {
     try {
-      const supabase = supabaseService.getClient(undefined, true)
+      const client = supabaseService.getClient(undefined, true)
+      const orderRepository = new OrderRepository(client)
       
-      await supabase
-        .from('orders')
-        .update({ 
-          status,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', orderId)
+      await orderRepository.update(orderId, { 
+        status,
+        updated_at: new Date().toISOString()
+      })
 
       // Enviar notificación de cambio de estado
       if (status !== 'pending' && status !== 'processing') {
@@ -158,32 +155,23 @@ class OrderProcessorService {
    */
   private async updateInventory(orderId: string): Promise<void> {
     try {
-      const supabase = supabaseService.getClient(undefined, true)
+      const client = supabaseService.getClient(undefined, true)
+      const orderRepository = new OrderRepository(client)
+      const productRepository = new ProductRepository(client)
       
       // Obtener productos de la orden
-      const { data: order, error } = await supabase
-        .from('orders')
-        .select('products')
-        .eq('id', orderId)
-        .single()
+      const { data: order, error } = await orderRepository.findById(orderId)
 
-      if (error || !order) return
+      if (error || !order || !order.products) return
 
       // Actualizar stock de cada producto
       for (const product of order.products) {
-        const { data: currentProduct } = await supabase
-          .from('products')
-          .select('stock')
-          .eq('id', product.product_id)
-          .single()
+        const { data: currentProduct } = await productRepository.findById(product.product_id)
 
-        if (currentProduct) {
+        if (currentProduct && currentProduct.stock !== undefined) {
           const newStock = currentProduct.stock - product.quantity
 
-          await supabase
-            .from('products')
-            .update({ stock: Math.max(0, newStock) })
-            .eq('id', product.product_id)
+          await productRepository.update(product.product_id, { stock: Math.max(0, newStock) })
         }
       }
     } catch (error) {
@@ -204,16 +192,14 @@ class OrderProcessorService {
    */
   async cancelOrder(orderId: string, reason?: string): Promise<boolean> {
     try {
-      const supabase = supabaseService.getClient(undefined, true)
+      const client = supabaseService.getClient(undefined, true)
+      const orderRepository = new OrderRepository(client)
       
-      await supabase
-        .from('orders')
-        .update({ 
-          status: 'cancelled',
-          cancelled_at: new Date().toISOString(),
-          cancellation_reason: reason || 'No especificado'
-        })
-        .eq('id', orderId)
+      await orderRepository.update(orderId, { 
+        status: 'cancelled',
+        cancelled_at: new Date().toISOString(),
+        cancellation_reason: reason || 'No especificado'
+      })
 
       // Enviar notificación
       await emailService.sendStatusUpdate(orderId, 'cancelled')
@@ -231,11 +217,10 @@ class OrderProcessorService {
    */
   async getProcessingStats(): Promise<any> {
     try {
-      const supabase = supabaseService.getClient(undefined, true)
+      const client = supabaseService.getClient(undefined, true)
+      const orderRepository = new OrderRepository(client)
       
-      const { data: stats } = await supabase
-        .from('orders')
-        .select('status')
+      const { data: stats } = await orderRepository.findAll(1000, 0)
 
       if (!stats) return null
 

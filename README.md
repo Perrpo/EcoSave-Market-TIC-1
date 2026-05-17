@@ -48,38 +48,47 @@ EcoSave Market es una plataforma web de economía circular que **conecta superme
 
 ---
 
-## 🏗️ Arquitectura
+## 🏗️ Arquitectura por Capas (Layered Architecture)
 
-```
+El proyecto ha migrado de una estructura monolítica a una **arquitectura por capas**, garantizando separación de responsabilidades, alta mantenibilidad y escalabilidad.
+
+### Estructura de Directorios
+
+```text
 EcoSave-Market-TIC-1/
-├── frontend-app/          # React + TypeScript + Vite
+├── frontend-app/          # Cliente React (Vite + TypeScript)
 │   └── src/
-│       ├── components/    # AuthForm, Sidebar, Modals, Cards
-│       ├── context/       # AuthContext (sesión global)
-│       ├── pages/         # Dashboard, DashboardONG, Map, Notifications
-│       ├── services/      # api.ts (cliente HTTP al backend)
-│       └── types/         # Interfaces TypeScript
+│       ├── components/    # Componentes UI reutilizables (Sidebar, Modals)
+│       ├── context/       # Estados globales (AuthContext, NotificationContext)
+│       ├── pages/         # Vistas principales separadas por rol (DashboardONG, etc.)
+│       └── services/      # Cliente API encapsulado (api.ts) para llamadas al backend
 │
-├── backend-app/           # AdonisJS 6 + TypeScript
+├── backend-app/           # API REST (AdonisJS 6 + TypeScript)
 │   └── app/
-│       ├── controllers/   # auth_controller, products_controller,
-│       │                  # donations_controller, notifications_controller
-│       ├── middleware/     # Autenticación JWT
-│       └── services/      # Cliente Supabase (service_role)
+│       ├── controllers/   # Capa de Presentación: Maneja peticiones HTTP y respuestas
+│       ├── services/      # Capa de Negocio: Lógica central, validaciones y reglas
+│       └── repositories/  # Capa de Acceso a Datos: Interacción exclusiva con Supabase (SQL)
 │
 └── Docs/                  # Documentación del proyecto
 ```
 
-### Stack tecnológico
+### Patrón de Diseño del Backend
 
-| Capa | Tecnología | Rol |
+El backend implementa el patrón **Controller-Service-Repository**:
+
+1.  **Controllers (`app/controllers/http/`):** Reciben las peticiones HTTP, extraen el token JWT, y delegan toda la lógica a los servicios. No contienen consultas a la base de datos.
+2.  **Services (`app/services/`):** Contienen el "cerebro" de la aplicación. Orquestan múltiples repositorios (ej: `DonationService` llama a `ProductRepository` y `NotificationRepository`), emiten eventos y aplican reglas de negocio (ej: verificar que una donación siga disponible).
+3.  **Repositories (`app/repositories/`):** Son la única capa que interactúa con la base de datos (Supabase). Aislan las consultas de la base de datos del resto de la aplicación, haciendo el código más testeable.
+
+### Stack Tecnológico
+
+| Capa | Tecnología | Propósito |
 |------|-----------|-----|
-| **Frontend** | React 18 + TypeScript | UI, routing, estado |
-| **Build tool** | Vite 5 | Bundler ultrarrápido |
-| **Backend** | AdonisJS 6 | API REST, validación, lógica de negocio |
-| **Base de datos** | Supabase (PostgreSQL) | Persistencia, Auth, RLS |
-| **Auth** | Supabase Auth + JWT | Autenticación stateless |
-| **Seguridad DB** | Row Level Security (RLS) | Aislamiento de datos por usuario |
+| **Frontend UI** | React 18 + TS | Construcción de interfaces reactivas |
+| **Styling** | Vanilla CSS | Diseño limpio ("Estilo Ejecutivo") basado en tokens |
+| **Backend API** | AdonisJS 6 | Enrutamiento HTTP y validaciones |
+| **Base de datos** | Supabase (PostgreSQL) | Almacenamiento centralizado y RLS |
+| **Notificaciones**| HTTP Polling | Sincronización asíncrona entre roles |
 
 ---
 
@@ -164,13 +173,7 @@ cd ../frontend-app
 npm install
 ```
 
-Crear `.env.local`:
-
-```env
-VITE_API_URL=http://localhost:3333/api/v1
-VITE_SUPABASE_URL=https://tu-proyecto.supabase.co
-VITE_SUPABASE_ANON_KEY=tu_anon_key
-```
+> ℹ️ **Nota:** El frontend no requiere configuración de variables de entorno (como `.env.local`), ya que toda la comunicación pasa directamente por el backend de AdonisJS (puerto 3333), manteniendo las credenciales de Supabase seguras en el servidor.
 
 Iniciar el frontend:
 
@@ -227,7 +230,7 @@ Las políticas RLS de Supabase garantizan el aislamiento de datos:
 | HU04 | Solicitud de donación por parte de ONG | ✅ |
 | HU05 | Confirmación de recepción | ✅ |
 | HU06 | Mapa de puntos de recolección con filtros | ✅ |
-| HU07 | Sistema de notificaciones en tiempo real | ✅ |
+| HU07 | Sistema de notificaciones en tiempo real (Backend polling) | ✅ |
 | HU08 | Historial persistente de donaciones | ✅ |
 | HU09 | Métricas de impacto por dashboard | ✅ |
 | HU10 | Panel administrativo | 🟡 Parcial |
@@ -238,10 +241,8 @@ Las políticas RLS de Supabase garantizan el aislamiento de datos:
 
 - [ ] **Solicitudes parciales** — permitir solicitar una cantidad específica (no toda la donación)
 - [ ] **Comprobante PDF** — generar soporte formal de donación para fines contables
-- [ ] **Realtime con Supabase** — sincronización automática vía WebSockets sin refresh
-- [ ] **Dashboard Admin completo** — métricas globales conectadas al backend real
 - [ ] **Redistribución inteligente** — asignación automática de sobrantes a otras ONGs
-- [ ] **Protección de rutas por rol** — middleware que impida acceso cruzado entre dashboards
+- [ ] **Dashboard Admin completo** — métricas globales conectadas al backend real
 
 ---
 
@@ -252,10 +253,11 @@ Las políticas RLS de Supabase garantizan el aislamiento de datos:
 ✅ Dashboard Supermercado funcional
 ✅ Dashboard ONG funcional
 ✅ Flujo completo de donaciones (crear → solicitar → confirmar)
-✅ Sistema de notificaciones
+✅ Sistema de notificaciones persistentes (con polling al backend)
 ✅ Mapa de puntos de recolección (tabla locations)
 ✅ RLS configurado en products y donations
 ✅ API REST con AdonisJS 6 (puerto 3333)
+✅ Protección de rutas por rol (previene el acceso cruzado entre dashboards)
 🟡 Dashboard Admin parcialmente conectado
 🟡 Solicitudes parciales pendientes
 🟡 Generación de comprobante PDF pendiente
