@@ -62,7 +62,7 @@ const DashboardONG: React.FC = () => {
       const response = await apiService.getAvailableDonations();
       
       if (response.success && response.data) {
-        setAvailableDonations(response.data);
+        setAvailableDonations(response.data as AvailableDonation[]);
       } else {
         setAvailableDonations([]);
       }
@@ -83,7 +83,7 @@ const DashboardONG: React.FC = () => {
       });
       
       if (response.success && response.data) {
-        setRequestHistory(response.data);
+        setRequestHistory(response.data as RequestHistory[]);
       } else {
         setRequestHistory([]);
       }

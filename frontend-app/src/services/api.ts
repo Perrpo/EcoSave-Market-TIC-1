@@ -91,6 +91,12 @@ class ApiService {
     return this.request('/products/available');
   }
 
+  async getLocations(params?: { tipo?: string }) {
+    const queryParams = new URLSearchParams();
+    if (params?.tipo) queryParams.append('tipo', params.tipo);
+    return this.request(`/locations?${queryParams}`);
+  }
+
   // Donaciones
   async getDonations(params?: {
     ong_id?: string;

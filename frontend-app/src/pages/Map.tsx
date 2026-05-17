@@ -50,9 +50,9 @@ const Map: React.FC = () => {
   useEffect(() => {
     const fetchLocations = async () => {
       setLoading(true)
-      const response = await apiService.request<{ success: boolean; data?: Location[] }>('/locations?tipo=ONG')
-      if (response && (response as any).success && (response as any).data) {
-        setLocations((response as any).data || [])
+      const response = await apiService.getLocations({ tipo: 'ONG' })
+      if (response.success && response.data) {
+        setLocations(response.data as Location[])
       }
       setLoading(false)
     }

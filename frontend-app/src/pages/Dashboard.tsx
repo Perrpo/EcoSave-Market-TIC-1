@@ -99,7 +99,7 @@ const Dashboard: React.FC = () => {
       const response = await apiService.getProducts();
       
       if (response.success && response.data) {
-        setProducts(response.data);
+        setProducts(response.data as Product[]);
       } else {
         setProducts([]);
       }
@@ -115,7 +115,7 @@ const Dashboard: React.FC = () => {
       const response = await apiService.getDonations();
       
       if (response.success && response.data) {
-        setDonations(response.data);
+        setDonations(response.data as Donation[]);
       } else {
         setDonations([]);
       }

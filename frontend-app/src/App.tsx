@@ -43,15 +43,6 @@ const AppContent: React.FC = () => {
     }
   };
 
-  // Role-based route protection
-  const getDashboardForRole = () => {
-    switch (user.role) {
-      case 'admin': return <DashboardAdmin />;
-      case 'ong': return <DashboardONG />;
-      default: return <Dashboard />;
-    }
-  };
-
   return (
     <div className="layout">
       <Sidebar />

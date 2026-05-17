@@ -19,4 +19,5 @@ export default await Env.create(new URL('../', import.meta.url), {
   LOG_LEVEL: Env.schema.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']),
   SUPABASE_URL: Env.schema.string(),
   SUPABASE_KEY: Env.schema.string(),
+  FRONTEND_URL: Env.schema.string.optional(),
 })
