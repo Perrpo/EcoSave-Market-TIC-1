@@ -95,7 +95,7 @@ const AuthForm: React.FC = () => {
 
   const renderRoleCards = (selected: Role, onSelect: (r: Role) => void) => (
     <div className="role-grid" role="group" aria-label="Selecciona tu rol">
-      {(['supermarket', 'ong', 'admin'] as Role[]).map((r) => (
+      {(['supermarket', 'ong'] as Role[]).map((r) => (
         <button
           type="button"
           key={r}
