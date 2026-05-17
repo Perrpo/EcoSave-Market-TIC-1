@@ -6,11 +6,12 @@
 
 **Plataforma web para reducir el desperdicio de alimentos conectando supermercados y ONGs**
 
-[![React](https://img.shields.io/badge/React-18-61DAFB?style=flat&logo=react&logoColor=white)](https://react.dev/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=flat&logo=react&logoColor=white)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![AdonisJS](https://img.shields.io/badge/AdonisJS-6-5A45FF?style=flat&logo=adonisjs&logoColor=white)](https://adonisjs.com/)
 [![Supabase](https://img.shields.io/badge/Supabase-BaaS-3ECF8E?style=flat&logo=supabase&logoColor=white)](https://supabase.com/)
-[![Vite](https://img.shields.io/badge/Vite-5-646CFF?style=flat&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Vite](https://img.shields.io/badge/Vite-7-646CFF?style=flat&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat&logo=docker&logoColor=white)](https://docs.docker.com/compose/)
 
 </div>
 
@@ -84,11 +85,13 @@ El backend implementa el patrón **Controller-Service-Repository**:
 
 | Capa | Tecnología | Propósito |
 |------|-----------|-----|
-| **Frontend UI** | React 18 + TS | Construcción de interfaces reactivas |
-| **Styling** | Vanilla CSS | Diseño limpio ("Estilo Ejecutivo") basado en tokens |
-| **Backend API** | AdonisJS 6 | Enrutamiento HTTP y validaciones |
+| **Frontend UI** | React 19 + TypeScript 5.9 | Construcción de interfaces reactivas |
+| **Build tool** | Vite 7 | Compilación y HMR en desarrollo |
+| **Styling** | Vanilla CSS | Diseño limpio basado en tokens CSS |
+| **Backend API** | AdonisJS 6 + TypeScript 5.8 | Enrutamiento HTTP, middleware y validaciones |
 | **Base de datos** | Supabase (PostgreSQL) | Almacenamiento centralizado y RLS |
-| **Notificaciones**| HTTP Polling | Sincronización asíncrona entre roles |
+| **Notificaciones** | HTTP Polling | Sincronización asíncrona entre roles |
+| **Contenedores** | Docker + Docker Compose | Despliegue reproducible en cualquier máquina |
 
 ---
 
@@ -116,72 +119,106 @@ created_at
 
 ---
 
-## 🚀 Instalación y uso local
+## 🚀 Cómo iniciar la plataforma
 
-### Requisitos previos
-- Node.js ≥ 18
-- npm ≥ 9
-- Una cuenta en [Supabase](https://supabase.com) con proyecto creado
+### Opción A — Docker (recomendado)
 
-### 1. Clonar el repositorio
+La forma más rápida. No requiere instalar Node.js ni configurar dependencias manualmente.
 
+**Requisitos:**
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado y corriendo
+
+**Pasos:**
+
+**1. Clonar el repositorio**
 ```bash
 git clone https://github.com/Perrpo/EcoSave-Market-TIC-1.git
 cd EcoSave-Market-TIC-1
 ```
 
-### 2. Configurar el Backend
+**2. Crear el archivo de entorno del backend**
+```bash
+cp backend-app/.env.example backend-app/.env
+```
 
+Abrir `backend-app/.env` y completar con las credenciales reales:
+
+```env
+SUPABASE_URL=https://tu-proyecto.supabase.co
+SUPABASE_KEY=tu-supabase-anon-key
+APP_KEY=una-cadena-aleatoria-segura
+EMAIL_USER=tu-email@gmail.com
+EMAIL_PASSWORD=tu-app-password-de-gmail
+PORT=3333
+HOST=0.0.0.0
+NODE_ENV=development
+LOG_LEVEL=info
+FRONTEND_URL=http://localhost:5173
+```
+
+**3. Construir y levantar los contenedores**
+```bash
+docker compose up --build
+```
+
+La primera vez puede tardar 2–3 minutos mientras se construyen las imágenes.
+
+**4. Abrir en el navegador**
+
+| Servicio | URL |
+|---------|-----|
+| Frontend | http://localhost |
+| Backend (health check) | http://localhost:3333/api/v1/health |
+
+**Comandos útiles:**
+```bash
+# Ver logs en tiempo real
+docker compose logs --follow
+
+# Detener los contenedores
+docker compose down
+
+# Reconstruir después de cambios en el código
+docker compose up --build
+```
+
+---
+
+### Opción B — Desarrollo local
+
+Para modificar código con hot-reload.
+
+**Requisitos:**
+- Node.js ≥ 20
+- npm ≥ 9
+- Una cuenta en [Supabase](https://supabase.com) con proyecto creado
+
+**1. Clonar el repositorio**
+```bash
+git clone https://github.com/Perrpo/EcoSave-Market-TIC-1.git
+cd EcoSave-Market-TIC-1
+```
+
+**2. Configurar y arrancar el backend**
 ```bash
 cd backend-app
 cp .env.example .env
+# Editar .env con las credenciales reales de Supabase y Gmail
 npm install
-```
-
-Editar `.env` con tus credenciales de Supabase:
-
-```env
-TZ=UTC
-PORT=3333
-HOST=localhost
-LOG_LEVEL=info
-APP_KEY=tu_app_key_generada
-NODE_ENV=development
-
-# Supabase Configuration
-SUPABASE_URL=https://otvxqjpofaibziffudwx.supabase.co
-SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im90dnhxanBvZmFpYnppZmZ1ZHd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3MjAwNzIsImV4cCI6MjA3ODI5NjA3Mn0.x_GWS6Vhtic1kT8gIskTa2lI-HIVGWiBZekBf-isVrA
-```
-
-> ⚠️ La `service_role` key bypasea RLS. Úsala **solo en el backend** y nunca la expongas al frontend.
-
-Genera el APP_KEY:
-```bash
-node ace generate:key
-```
-
-Iniciar el servidor:
-
-```bash
 node ace serve --hmr
 ```
 
-### 3. Configurar el Frontend
+El backend queda en `http://localhost:3333`.
 
+**3. Configurar y arrancar el frontend**
 ```bash
 cd ../frontend-app
+# El archivo .env ya existe con la URL por defecto
 npm install
-```
-
-> ℹ️ **Nota:** El frontend no requiere configuración de variables de entorno (como `.env.local`), ya que toda la comunicación pasa directamente por el backend de AdonisJS (puerto 3333), manteniendo las credenciales de Supabase seguras en el servidor.
-
-Iniciar el frontend:
-
-```bash
 npm run dev
 ```
 
-La app estará disponible en `http://localhost:5173`.
+El frontend queda en `http://localhost:5173`.
 
 ---
 
