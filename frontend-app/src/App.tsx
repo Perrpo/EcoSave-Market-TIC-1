@@ -9,6 +9,7 @@ import DashboardONG from './pages/DashboardONG';
 import DashboardAdmin from './pages/DashboardAdmin';
 import Map from './pages/Map';
 import Notifications from './pages/Notifications';
+import IntegracionInventario from './pages/IntegracionInventario';
 
 const AppContent: React.FC = () => {
   const { isAuthenticated, user, isReady } = useAuth();
@@ -49,22 +50,9 @@ const AppContent: React.FC = () => {
       <main className="main-content">
         <Routes>
           <Route path="/" element={<Navigate to={getDefaultRoute()} replace />} />
-          
-          {/* Cada rol ve SU dashboard, si intenta acceder al de otro rol se redirige */}
-          <Route
-            path="/dashboard"
-            element={user.role === 'supermarket' ? <Dashboard /> : <Navigate to={getDefaultRoute()} replace />}
-          />
-          <Route
-            path="/dashboard-ong"
-            element={user.role === 'ong' ? <DashboardONG /> : <Navigate to={getDefaultRoute()} replace />}
-          />
-          <Route
-            path="/dashboard-admin"
-            element={user.role === 'admin' ? <DashboardAdmin /> : <Navigate to={getDefaultRoute()} replace />}
-          />
-
-          {/* Rutas comunes */}
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard-ong" element={<DashboardONG />} />
+          <Route path="/dashboard-admin" element={<DashboardAdmin />} />
           <Route path="/map" element={<Map />} />
           <Route path="/notifications" element={<Notifications />} />
 
