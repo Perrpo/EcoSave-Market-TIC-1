@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\JoseVelez\\\\OneDrive - UPB\\\\Desktop\\\\TIC 1\\\\EcoSave-Market-TIC-1\" -Recurse -Force)",
-      "Bash(Select-Object FullName, PSIsContainer)",
-      "Bash(Sort-Object FullName)"
-    ]
-  }
-}
