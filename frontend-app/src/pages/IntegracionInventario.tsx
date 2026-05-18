@@ -81,9 +81,8 @@ const IntegracionInventario: React.FC = () => {
 
   // Simula conectar una cuenta
   const handleConnect = (provider: Provider) => {
-    const c = connections.find(c => c.provider === provider)!
-
     // Validar campos mínimos según proveedor
+    // const c = connections.find(c => c.provider === provider)!
     if (provider === 'siigo'  && (!creds.siigo.clientId   || !creds.siigo.clientSecret)) {
       alert('Completa Client ID y Client Secret de Siigo.')
       return
