@@ -4,6 +4,8 @@ import { useNotifications } from '../context/NotificationContext';
 import apiService from '../services/api';
 import './Dashboard.css';
 import './DashboardONG.css';
+import { MinimalCard, MinimalCardContent, MinimalCardFooter, MinimalCardTitle } from '../components/ui/minimal-card';
+import { TextureButton } from '../components/ui/texture-button';
 
 interface AvailableDonation {
   id: string;
@@ -82,6 +84,13 @@ const DashboardONG: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [requestingId, setRequestingId] = useState<string | null>(null);
   const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [requestQuantity, setRequestQuantity] = useState<number>(1);
+
+  useEffect(() => {
+    if (selectedDonation) {
+      setRequestQuantity(selectedDonation.quantity);
+    }
+  }, [selectedDonation]);
 
   useEffect(() => {
     if (auth.user?.id) {
@@ -135,13 +144,13 @@ const DashboardONG: React.FC = () => {
 
     setRequestingId(donation.id);
     try {
-      const response = await apiService.requestDonation(donation.id);
+      const response = await apiService.requestDonation(donation.id, requestQuantity);
 
       if (response.success) {
         addNotification({
           type: 'donation_requested',
           title: 'Solicitud de Donación Enviada',
-          message: `Has solicitado ${donation.product_name} (${donation.quantity} unidades) de ${donation.supermarkets?.business_name || 'Supermercado'}.`,
+          message: `Has solicitado ${donation.product_name} (${requestQuantity} unidades) de ${donation.supermarkets?.business_name || 'Supermercado'}.`,
         });
         
         await loadAvailableDonations();
@@ -390,52 +399,52 @@ const DashboardONG: React.FC = () => {
               const isRequesting = requestingId === donation.id;
 
               return (
-                <div key={donation.id} className={`ong-donation-card ${urgency}`}>
-                  {/* Urgency strip */}
-                  <div className={`ong-card-strip ${urgency}`}></div>
+                <MinimalCard key={donation.id} className={`relative overflow-hidden ${urgency === 'urgent' ? 'border-red-500/50 shadow-red-500/20' : ''}`}>
+                  <div className={`absolute top-0 left-0 w-1 h-full ${urgency === 'urgent' ? 'bg-red-500' : urgency === 'warning' ? 'bg-yellow-500' : 'bg-green-500'}`}></div>
                   
-                  <div className="ong-card-content">
-                    {/* Header con ícono y categoría */}
-                    <div className="ong-card-header">
-                      <div className="ong-card-category-icon">
+                  <MinimalCardContent className="pt-4">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="text-3xl bg-neutral-100 p-2 rounded-xl">
                         {getCategoryIcon(donation.product_category)}
                       </div>
-                      <div className="ong-card-badges">
-                        <span className={`ong-expiry-badge ${urgency}`}>
+                      <div className="flex flex-col items-end gap-1">
+                        <span className={`text-xs font-bold px-2 py-1 rounded-full ${urgency === 'urgent' ? 'bg-red-100 text-red-700' : urgency === 'warning' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}`}>
                           {urgency === 'urgent' ? '🔴' : urgency === 'warning' ? '🟡' : '🟢'}
                           {' '}{daysLeft > 0 ? `${daysLeft} días` : 'Vence hoy'}
                         </span>
-                        <span className="ong-category-badge">{donation.product_category}</span>
+                        <span className="text-xs font-semibold bg-gray-100 text-gray-600 px-2 py-1 rounded-full">{donation.product_category}</span>
                       </div>
                     </div>
 
-                    {/* Info principal */}
-                    <h3 className="ong-card-title">{donation.product_name}</h3>
+                    <MinimalCardTitle className="text-xl mb-1">{donation.product_name}</MinimalCardTitle>
                     
-                    <div className="ong-card-details">
-                      <div className="ong-detail-row">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
-                        <span><strong>{donation.quantity}</strong> unidades</span>
+                    <div className="space-y-2 mt-4 text-sm text-neutral-600">
+                      <div className="flex items-center gap-2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+                        <span><strong className="text-neutral-900">{donation.quantity}</strong> unidades</span>
                       </div>
-                      <div className="ong-detail-row">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                      <div className="flex items-center gap-2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                         <span>Vence: {new Date(donation.expiry_date).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                       </div>
-                      <div className="ong-detail-row">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                        <span>{donation.supermarkets?.business_name || 'Supermercado'}</span>
+                      <div className="flex items-center gap-2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                        <span className="font-medium">{donation.supermarkets?.business_name || 'Supermercado'}</span>
                       </div>
                     </div>
+                  </MinimalCardContent>
 
-                    {/* Botón de solicitar */}
-                    <button
-                      className={`ong-request-btn ${donation.status !== 'available' ? 'disabled' : ''}`}
+                  <MinimalCardFooter className="pb-4">
+                    <TextureButton
+                      variant={donation.status !== 'available' ? 'secondary' : 'ecosavePrimary'}
+                      size="lg"
+                      className="w-full flex items-center justify-center gap-2"
                       onClick={() => setSelectedDonation(donation)}
                       disabled={donation.status !== 'available' || isRequesting}
                     >
                       {isRequesting ? (
                         <>
-                          <div className="ong-btn-spinner"></div>
+                          <div className="ong-btn-spinner w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                           Solicitando...
                         </>
                       ) : donation.status === 'available' ? (
@@ -449,9 +458,9 @@ const DashboardONG: React.FC = () => {
                           {donation.status === 'requested' ? 'Ya solicitado' : 'Completado'}
                         </>
                       )}
-                    </button>
-                  </div>
-                </div>
+                    </TextureButton>
+                  </MinimalCardFooter>
+                </MinimalCard>
               );
             })
           )}
@@ -487,40 +496,46 @@ const DashboardONG: React.FC = () => {
                          request.status === 'requested' ? 'Pendiente' : 'Disponible'}
                       </span>
                       {request.status === 'requested' && (
-                        <button 
-                          className="btn-confirm" 
-                          onClick={() => handleConfirmReceipt(request.id)}
-                          style={{ marginTop: '0.5rem', fontSize: '0.85rem' }}
-                        >
-                          ✅ Confirmar Recepción
-                        </button>
+                        <div style={{ marginTop: '0.5rem', width: '100%' }}>
+                          <TextureButton 
+                            variant="ecosavePrimary"
+                            size="sm"
+                            className="w-full"
+                            onClick={() => handleConfirmReceipt(request.id)}
+                          >
+                            ✅ Confirmar Recepción
+                          </TextureButton>
+                        </div>
                       )}
-                      <button 
-                        className="action-btn" 
-                        style={{ background: '#00A99D', color: '#fff', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', marginTop: '4px' }}
-                        onClick={() => {
-                          const token = localStorage.getItem('token');
-                          fetch(`http://localhost:3333/api/v1/donations/${request.id}/certificate`, {
-                            headers: token ? { Authorization: `Bearer ${token}` } : {}
-                          })
-                          .then(res => res.blob())
-                          .then(blob => {
-                            const url = window.URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = `certificado-recepcion-${request.id.slice(0,8)}.pdf`;
-                            document.body.appendChild(a);
-                            a.click();
-                            window.URL.revokeObjectURL(url);
-                          })
-                          .catch(err => {
-                            console.error('Error downloading certificate', err);
-                            alert('Error al descargar el certificado');
-                          });
-                        }}
-                      >
-                        Generar PDF
-                      </button>
+                      <div style={{ marginTop: '4px', width: '100%' }}>
+                        <TextureButton 
+                          variant="ecosaveSecondary"
+                          size="sm"
+                          className="w-full"
+                          onClick={() => {
+                            const token = localStorage.getItem('token');
+                            fetch(`http://localhost:3333/api/v1/donations/${request.id}/certificate`, {
+                              headers: token ? { Authorization: `Bearer ${token}` } : {}
+                            })
+                            .then(res => res.blob())
+                            .then(blob => {
+                              const url = window.URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.href = url;
+                              a.download = `certificado-recepcion-${request.id.slice(0,8)}.pdf`;
+                              document.body.appendChild(a);
+                              a.click();
+                              window.URL.revokeObjectURL(url);
+                            })
+                            .catch(err => {
+                              console.error('Error downloading certificate', err);
+                              alert('Error al descargar el certificado');
+                            });
+                          }}
+                        >
+                          Generar PDF
+                        </TextureButton>
+                      </div>
                     </div>
                   </div>
                 ))
@@ -555,9 +570,19 @@ const DashboardONG: React.FC = () => {
                 <span className="ong-confirm-label">Categoría</span>
                 <span className="ong-confirm-value">{selectedDonation.product_category}</span>
               </div>
-              <div className="ong-confirm-row">
-                <span className="ong-confirm-label">Cantidad</span>
-                <span className="ong-confirm-value">{selectedDonation.quantity} unidades</span>
+              <div className="ong-confirm-row" style={{ alignItems: 'center' }}>
+                <span className="ong-confirm-label">Cantidad a solicitar</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <input 
+                    type="number" 
+                    min="1" 
+                    max={selectedDonation.quantity} 
+                    value={requestQuantity} 
+                    onChange={(e) => setRequestQuantity(Math.min(selectedDonation.quantity, Math.max(1, parseInt(e.target.value) || 1)))}
+                    style={{ width: '80px', padding: '6px 8px', borderRadius: '6px', border: '1px solid #d1d5db', outline: 'none' }}
+                  />
+                  <span className="ong-confirm-value text-sm text-gray-500">de {selectedDonation.quantity} disp.</span>
+                </div>
               </div>
               <div className="ong-confirm-row">
                 <span className="ong-confirm-label">Supermercado</span>

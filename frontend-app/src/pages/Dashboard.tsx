@@ -3,6 +3,8 @@ import { useAuth } from '../context/AuthContext'
 import { useNotifications } from '../context/NotificationContext'
 import apiService from '../services/api'
 import './Dashboard.css'
+import { TextureCardStyled, TextureCardHeader, TextureCardTitle, TextureCardDescription, TextureCardContent, TextureSeparator } from '../components/ui/texture-card'
+import { TextureButton } from '../components/ui/texture-button'
 
 const BoxIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -408,7 +410,7 @@ const Dashboard: React.FC = () => {
                 <PackageIcon />
                 <p className="empty-title">No hay productos registrados</p>
                 <p className="empty-sub">Agrega productos para comenzar a gestionar tu inventario</p>
-                <button className="btn-primary" onClick={() => setShowAddProduct(true)}>Agregar primer producto</button>
+                <TextureButton variant="ecosavePrimary" size="lg" onClick={() => setShowAddProduct(true)}>Agregar primer producto</TextureButton>
               </div>
             ) : (
               <table className="products-table">
@@ -439,13 +441,17 @@ const Dashboard: React.FC = () => {
                         </span>
                       </td>
                       <td>
-                        <div className="actions-inline">
-                          <button className="donar" onClick={() => handleDonate(p.id)} disabled={p.estado === 'Donado' || p.estado === 'Vencido'}>
-                            Donar
-                          </button>
-                          <button className="descuento" onClick={() => handleDiscount(p.id)} disabled={p.estado === 'Donado' || p.estado === 'Descuento'}>
-                            Descuento
-                          </button>
+                        <div className="actions-inline" style={{ display: 'flex', gap: '8px' }}>
+                          <div style={{ width: '100px' }}>
+                            <TextureButton variant="ecosavePrimary" size="sm" onClick={() => handleDonate(p.id)} disabled={p.estado === 'Donado' || p.estado === 'Vencido'}>
+                              Donar
+                            </TextureButton>
+                          </div>
+                          <div style={{ width: '100px' }}>
+                            <TextureButton variant="ecosaveSecondary" size="sm" onClick={() => handleDiscount(p.id)} disabled={p.estado === 'Donado' || p.estado === 'Descuento'}>
+                              Descuento
+                            </TextureButton>
+                          </div>
                         </div>
                       </td>
                     </tr>
@@ -457,22 +463,27 @@ const Dashboard: React.FC = () => {
         </div>
 
         <div className="notif-list">
-          <div className="card alert-panel">
-            <h3 className="main-title">Alertas de vencimiento</h3>
-            <div className="subtitle">Productos que requieren acción</div>
-            <div className="notif-list">
+          <TextureCardStyled>
+            <TextureCardHeader>
+              <TextureCardTitle>Alertas de vencimiento</TextureCardTitle>
+              <TextureCardDescription>Productos que requieren acción</TextureCardDescription>
+            </TextureCardHeader>
+            <TextureSeparator />
+            <TextureCardContent className="space-y-4">
               {products.filter(p => getExpiryClass(p.vencimiento) !== 'green').map(p => (
-                <div key={p.id} className="notif-card">
-                  <div className="stat-title">{p.categoria}</div>
-                  <div className="stat-value">{p.nombre}</div>
+                <div key={p.id} className="flex justify-between items-center bg-gray-50/50 p-3 rounded-xl border border-gray-100">
+                  <div>
+                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{p.categoria}</div>
+                    <div className="font-medium text-gray-900">{p.nombre}</div>
+                  </div>
                   <div className={`tag ${getExpiryClass(p.vencimiento)}`}>{new Date(p.vencimiento).toLocaleDateString()}</div>
                 </div>
               ))}
               {products.filter(p => getExpiryClass(p.vencimiento) !== 'green').length === 0 && (
-                <div className="subtitle">Sin alertas por ahora</div>
+                <div className="text-sm text-gray-500 italic">Sin alertas por ahora</div>
               )}
-            </div>
-          </div>
+            </TextureCardContent>
+          </TextureCardStyled>
         </div>
       </div>
 

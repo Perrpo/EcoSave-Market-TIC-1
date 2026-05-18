@@ -137,6 +137,7 @@ cd EcoSave-Market-TIC-1
 ```
 
 **2. Crear el archivo de entorno del backend**
+<<<<<<< HEAD
 ```bash
 cp backend-app/.env.example backend-app/.env
 ```
@@ -205,54 +206,76 @@ cd backend-app
 cp .env.example .env
 # Editar .env con las credenciales reales de Supabase y Gmail
 npm install
+=======
+```bash
+cp backend-app/.env.example backend-app/.env
+>>>>>>> 3396147 (feat: integrar Cult UI, solicitudes parciales, logica de sobrantes y modernizacion mapa)
 ```
 
-Editar `.env` con tus credenciales de Supabase:
+Abrir `backend-app/.env` y completar con las credenciales reales:
 
 ```env
-# ============================================
-# BASE DE DATOS - SUPABASE
-# ============================================
-# Obtén estos valores desde: https://supabase.com/dashboard/project/TU_PROYECTO/settings/api
-
 SUPABASE_URL=https://tu-proyecto.supabase.co
-SUPABASE_KEY=tu_anon_key                        # ← Clave pública (anon / publishable)
-SUPABASE_SERVICE_ROLE_KEY=tu_service_role_key    # ← Clave secreta (service_role)
-
-# ============================================
-# SERVIDOR
-# ============================================
+SUPABASE_KEY=tu-supabase-anon-key
+APP_KEY=una-cadena-aleatoria-segura
+EMAIL_USER=tu-email@gmail.com
+EMAIL_PASSWORD=tu-app-password-de-gmail
 PORT=3333
 HOST=0.0.0.0
 NODE_ENV=development
-APP_KEY=ecosave-market-university-project-2024
-
-# ============================================
-# EMAIL SERVICE (SMTP) - Opcional
-# ============================================
-# Para enviar certificados de donación por correo.
-# Si usas Gmail:
-#   1. Activa la verificación en 2 pasos en tu cuenta de Google
-#   2. Ve a: https://myaccount.google.com/apppasswords
-#   3. Genera una contraseña de aplicación
-#   4. Pégala aquí SIN espacios
-
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
-EMAIL_USER=tu_correo@gmail.com
-EMAIL_PASSWORD=tucontraseñadeaplicacion
+LOG_LEVEL=info
+FRONTEND_URL=http://localhost:5173
 ```
 
-> [!CAUTION]
-> **¡Las 2 claves de Supabase son obligatorias!** 
-> - `SUPABASE_KEY` (anon key): Se usa para consultas autenticadas con el JWT del usuario.
-> - `SUPABASE_SERVICE_ROLE_KEY`: Bypasea RLS y se usa internamente para operaciones privilegiadas (notificaciones cross-usuario, creación de donaciones). **Nunca la expongas al frontend.**
->
-> Sin la `SUPABASE_SERVICE_ROLE_KEY`, el backend no podrá crear notificaciones ni gestionar donaciones entre roles.
-
-Iniciar el servidor:
-
+**3. Construir y levantar los contenedores**
 ```bash
+docker compose up --build
+```
+
+La primera vez puede tardar 2–3 minutos mientras se construyen las imágenes.
+
+**4. Abrir en el navegador**
+
+| Servicio | URL |
+|---------|-----|
+| Frontend | http://localhost |
+| Backend (health check) | http://localhost:3333/api/v1/health |
+
+**Comandos útiles:**
+```bash
+# Ver logs en tiempo real
+docker compose logs --follow
+
+# Detener los contenedores
+docker compose down
+
+# Reconstruir después de cambios en el código
+docker compose up --build
+```
+
+---
+
+### Opción B — Desarrollo local
+
+Para modificar código con hot-reload.
+
+**Requisitos:**
+- Node.js ≥ 20
+- npm ≥ 9
+- Una cuenta en [Supabase](https://supabase.com) con proyecto creado
+
+**1. Clonar el repositorio**
+```bash
+git clone https://github.com/Perrpo/EcoSave-Market-TIC-1.git
+cd EcoSave-Market-TIC-1
+```
+
+**2. Configurar y arrancar el backend**
+```bash
+cd backend-app
+cp .env.example .env
+# Editar .env con las credenciales reales de Supabase y Gmail
+npm install
 node ace serve --hmr
 ```
 

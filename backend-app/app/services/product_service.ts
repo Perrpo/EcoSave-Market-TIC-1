@@ -44,17 +44,17 @@ export default class ProductService {
   }
 
   async getProductById(accessToken: string | undefined, id: string) {
-    const repository = this.getRepository(accessToken)
+    const repository = this.getRepository(accessToken, true)
     return await repository.findById(id)
   }
 
   async updateProduct(accessToken: string | undefined, id: string, updateData: any) {
-    const repository = this.getRepository(accessToken)
+    const repository = this.getRepository(accessToken, true)
     return await repository.update(id, updateData)
   }
 
   async deleteProduct(accessToken: string | undefined, id: string) {
-    const repository = this.getRepository(accessToken)
+    const repository = this.getRepository(accessToken, true)
     return await repository.delete(id)
   }
 

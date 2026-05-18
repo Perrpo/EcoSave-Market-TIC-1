@@ -9,7 +9,7 @@ export default class KeepAliveController {
       
       // Hacemos un query simple a una tabla cualquiera, ej. users o products con limit(1)
       // Esto asegura que la base de datos registra actividad
-      const { data, error } = await client.from('products').select('id').limit(1)
+      const { error } = await client.from('products').select('id').limit(1)
 
       if (error) {
         throw error

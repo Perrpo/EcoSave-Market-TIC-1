@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { useAuth } from '../context/AuthContext'
 import apiService from '../services/api'
+import { MinimalCard, MinimalCardTitle, MinimalCardDescription } from '../components/ui/minimal-card'
 import './Map.css'
 
 type Location = {
@@ -42,6 +44,9 @@ const SearchXIcon = () => (
 )
 
 const Map: React.FC = () => {
+  const auth = useAuth()
+  const isOng = auth.user?.role === 'ong'
+  
   const [locations, setLocations] = useState<Location[]>([])
   const [search, setSearch] = useState('')
   const [activeFilter, setActiveFilter] = useState('todas')
@@ -50,14 +55,20 @@ const Map: React.FC = () => {
   useEffect(() => {
     const fetchLocations = async () => {
       setLoading(true)
-      const response = await apiService.getLocations({ tipo: 'ONG' })
+      const response = await apiService.getLocations()
       if (response.success && response.data) {
-        setLocations(response.data as Location[])
+        const allLocations = response.data as Location[]
+        const targetType = isOng ? ['supermercado', 'supermarket'] : ['ong']
+        
+        const filteredLocations = allLocations.filter(loc => 
+          targetType.includes(loc.tipo?.toLowerCase())
+        )
+        setLocations(filteredLocations)
       }
       setLoading(false)
     }
     fetchLocations()
-  }, [])
+  }, [isOng])
 
   const filtered = useMemo(() => {
     return locations.filter((loc) => {
@@ -84,8 +95,8 @@ const Map: React.FC = () => {
   return (
     <div className="map-dashboard">
       <div className="page-header">
-        <h1>Puntos de Recolección</h1>
-        <p className="subtitle muted">ONGs aliadas disponibles</p>
+        <h1>{isOng ? 'Supermercados Aliados' : 'Puntos de Recolección'}</h1>
+        <p className="subtitle muted">{isOng ? 'Encuentra supermercados con donaciones' : 'ONGs aliadas disponibles'}</p>
       </div>
 
       <div className="search-card">
@@ -117,7 +128,7 @@ const Map: React.FC = () => {
           {filtered.length === 0 ? (
             <div className="empty-state">
               <SearchXIcon />
-              <p className="empty-title">No se encontraron ONGs</p>
+              <p className="empty-title">{isOng ? 'No se encontraron supermercados' : 'No se encontraron ONGs'}</p>
               <p className="empty-sub">Intenta con otro término de búsqueda</p>
               <button className="pill" onClick={() => { setSearch(''); setActiveFilter('todas'); }}>
                 Limpiar filtros
@@ -129,20 +140,20 @@ const Map: React.FC = () => {
                 ? loc.especialidades
                 : JSON.parse((loc.especialidades as any) || '[]')
               return (
-                <div key={loc.id} className="ong-card">
+                <MinimalCard key={loc.id} className="p-4 flex flex-col gap-3">
                   <div className="ong-head">
                     <BuildingIcon />
                     <div>
-                      <p className="ong-name">{loc.nombre}</p>
-                      <div className="ong-address"><PinIcon /> {loc.direccion}</div>
+                      <MinimalCardTitle>{loc.nombre}</MinimalCardTitle>
+                      <MinimalCardDescription className="flex items-center gap-1 mt-1"><PinIcon /> {loc.direccion}</MinimalCardDescription>
                     </div>
                   </div>
-                  <div className="tags">
+                  <div className="tags mt-2">
                     {especialidades.map((tag: string) => (
                       <span key={tag} className="tag">{tag}</span>
                     ))}
                   </div>
-                </div>
+                </MinimalCard>
               )
             })
           )}

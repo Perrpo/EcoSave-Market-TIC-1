@@ -151,6 +151,7 @@ export default class DonationController {
   async request({ params, request, response }: HttpContext) {
     try {
       const { id } = params
+      const { quantity } = request.only(['quantity'])
       const accessToken = supabaseService.getAccessToken(request.header('Authorization'))
       const ongId = await supabaseService.getUserId(accessToken)
 
@@ -164,7 +165,8 @@ export default class DonationController {
       const { data: updatedDonation, error } = await this.donationService.requestDonation(
         accessToken,
         ongId,
-        id
+        id,
+        quantity ? Number(quantity) : undefined
       )
 
       if (error) {

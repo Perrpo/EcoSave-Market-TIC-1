@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { TextureButton } from './ui/texture-button'
 import './AuthForm.css'
 
 type Role = 'supermarket' | 'ong' | 'admin'
@@ -155,13 +156,13 @@ const AuthForm: React.FC = () => {
             <p className="eyebrow">Bienvenido</p>
             <h2>{tab === 'login' ? 'Inicia sesión' : 'Crear cuenta'}</h2>
           </div>
-          <button
-            className="tab-toggle"
+          <TextureButton
+            variant="minimal"
             type="button"
             onClick={() => setTab(tab === 'login' ? 'register' : 'login')}
           >
             {tab === 'login' ? 'Quiero registrarme' : 'Ya tengo cuenta'}
-          </button>
+          </TextureButton>
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
@@ -239,9 +240,11 @@ const AuthForm: React.FC = () => {
           {error && <div className="alert error">{error}</div>}
           {successMessage && <div className="alert success">{successMessage}</div>}
 
-          <button className="btn-primary" type="submit" disabled={isLoading}>
-            {isLoading ? 'Procesando…' : tab === 'login' ? 'Ingresar' : 'Crear cuenta'}
-          </button>
+          <div className="mt-4">
+            <TextureButton variant="accent" size="lg" type="submit" disabled={isLoading}>
+              {isLoading ? 'Procesando…' : tab === 'login' ? 'Ingresar' : 'Crear cuenta'}
+            </TextureButton>
+          </div>
         </form>
       </div>
     </div>

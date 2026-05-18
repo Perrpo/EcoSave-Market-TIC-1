@@ -57,7 +57,7 @@ export default class DonationService {
     return await repository.findById(id)
   }
 
-  async requestDonation(accessToken: string | undefined, ongId: string, donationId: string) {
+  async requestDonation(accessToken: string | undefined, ongId: string, donationId: string, requestedQuantity?: number) {
     const repository = this.getRepository(accessToken, true)
 
     const { data: donation, error: donationError } = await repository.findById(donationId)
@@ -70,12 +70,45 @@ export default class DonationService {
       return { error: new Error('Esta donación ya no está disponible'), data: null }
     }
 
-    const result = await repository.update(donationId, {
-      ong_id: ongId,
-      status: 'requested',
-      requested_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    })
+    const availableQty = donation.quantity;
+    const requestQty = requestedQuantity !== undefined ? requestedQuantity : availableQty;
+
+    if (requestQty <= 0 || requestQty > availableQty) {
+      return { error: new Error('Cantidad solicitada inválida'), data: null }
+    }
+
+    let result;
+
+    if (requestQty < availableQty) {
+      const remainingQty = availableQty - requestQty;
+
+      // Crear el remanente disponible (Redistribución)
+      await repository.create({
+        product_id: donation.product_id,
+        user_id: donation.user_id,
+        quantity: remainingQty,
+        product_name: donation.product_name,
+        product_category: donation.product_category,
+        expiry_date: donation.expiry_date,
+        status: 'available',
+      })
+
+      // Y actualizar la actual para que sea la solicitada
+      result = await repository.update(donationId, {
+        ong_id: ongId,
+        status: 'requested',
+        quantity: requestQty,
+        requested_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+    } else {
+      result = await repository.update(donationId, {
+        ong_id: ongId,
+        status: 'requested',
+        requested_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+    }
 
     if (!result.error && result.data) {
       // Notificar al supermercado dueño del producto
@@ -94,7 +127,7 @@ export default class DonationService {
         user_id: donation.user_id, // El supermercado
         type: 'donation_requested',
         title: 'Nueva solicitud de donación',
-        message: `${ongName} ha solicitado ${donation.quantity} unidades de ${donation.product_name}.`,
+        message: `${ongName} ha solicitado ${requestQty} unidades de ${donation.product_name}.`,
         product_id: donation.product_id
       }, true)
     }

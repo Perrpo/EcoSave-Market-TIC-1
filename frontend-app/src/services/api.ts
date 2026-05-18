@@ -13,7 +13,7 @@ interface ApiResponse<T> {
 }
 
 class ApiService {
-  private async request<T = any>(
+  public async request<T = any>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
@@ -124,9 +124,10 @@ class ApiService {
     });
   }
 
-  async requestDonation(id: string) {
+  async requestDonation(id: string, quantity?: number) {
     return this.request(`/donations/${id}/request`, {
       method: 'POST',
+      body: JSON.stringify({ quantity }),
     });
   }
 
