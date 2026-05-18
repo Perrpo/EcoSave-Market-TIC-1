@@ -55,6 +55,7 @@ const AppContent: React.FC = () => {
           <Route path="/dashboard-admin" element={<DashboardAdmin />} />
           <Route path="/map" element={<Map />} />
           <Route path="/notifications" element={<Notifications />} />
+          <Route path="/integracion-inventario" element={<IntegracionInventario />} />
 
           {/* Fallback: redirige al dashboard correcto */}
           <Route path="*" element={<Navigate to={getDefaultRoute()} replace />} />
