@@ -210,6 +210,43 @@ const DashboardONG: React.FC = () => {
       .reduce((sum, r) => sum + r.quantity, 0);
   }, [requestHistory]);
 
+  const categoryBreakdownOng = useMemo(() => {
+    const map: Record<string, number> = {};
+    requestHistory.filter(r => r.status === 'completed').forEach(r => {
+      const cat = r.product_category || 'Otros';
+      map[cat] = (map[cat] || 0) + r.quantity;
+    });
+    const total = Object.values(map).reduce((a, b) => a + b, 0) || 1;
+    return Object.entries(map)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 4)
+      .map(([cat, qty]) => ({ cat, qty, pct: Math.round((qty / total) * 100) }));
+  }, [requestHistory]);
+
+  const beneficiariosEstimados = useMemo(() => {
+    // Estimado: 1 kg = 2 raciones, 0.5 kg por unidad
+    return Math.round(totalItemsReceived * 0.5 * 2);
+  }, [totalItemsReceived]);
+
+  const topSupermercado = useMemo(() => {
+    const countBySup: Record<string, number> = {};
+    requestHistory.filter(r => r.status === 'completed').forEach(r => {
+      const name = r.supermarkets?.business_name || 'Desconocido';
+      countBySup[name] = (countBySup[name] || 0) + r.quantity;
+    });
+    return Object.entries(countBySup).sort((a, b) => b[1] - a[1])[0]?.[0] || 'Sin datos';
+  }, [requestHistory]);
+
+  const urgentAvailableRatio = useMemo(() => {
+    const total = availableDonations.length;
+    if (total === 0) return 0;
+    const urgent = availableDonations.filter(d => {
+      const days = getDaysUntilExpiry(d.expiry_date);
+      return days <= 2;
+    }).length;
+    return Math.round((urgent / total) * 100);
+  }, [availableDonations]);
+
   const categories = useMemo(() => {
     const cats = new Set(availableDonations.map(d => d.product_category));
     return ['all', ...Array.from(cats)];
@@ -263,6 +300,103 @@ const DashboardONG: React.FC = () => {
           <div>
             <div className="stat-title">Total Artículos Recibidos</div>
             <div className="stat-value">{totalItemsReceived}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── MÉTRICAS DE IMPACTO SOCIAL ONG ── */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+        gap: '16px',
+        margin: '0 0 24px',
+      }}>
+        {/* Beneficiarios estimados */}
+        <div style={{
+          background: 'linear-gradient(135deg, #00A99D15, #00A99D05)',
+          border: '1.5px solid #00A99D30',
+          borderRadius: '16px',
+          padding: '20px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '6px',
+        }}>
+          <div style={{ fontSize: '1.8rem' }}>👨‍👩‍👧‍👦</div>
+          <div style={{ fontSize: '1.7rem', fontWeight: 800, color: '#00A99D' }}>{beneficiariosEstimados}</div>
+          <div style={{ fontSize: '0.82rem', color: '#6b7280', fontWeight: 600 }}>Beneficiarios Estimados</div>
+          <div style={{ fontSize: '0.74rem', color: '#9ca3af' }}>2 raciones por kg rescatado</div>
+        </div>
+
+        {/* Top Supermercado donante */}
+        <div style={{
+          background: 'linear-gradient(135deg, #F5822015, #F5822005)',
+          border: '1.5px solid #F5822030',
+          borderRadius: '16px',
+          padding: '20px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '6px',
+        }}>
+          <div style={{ fontSize: '1.8rem' }}>🏅</div>
+          <div style={{ fontSize: '1rem', fontWeight: 800, color: '#F58220', wordBreak: 'break-word' }}>{topSupermercado}</div>
+          <div style={{ fontSize: '0.82rem', color: '#6b7280', fontWeight: 600 }}>Supermercado Aliado #1</div>
+          <div style={{ fontSize: '0.74rem', color: '#9ca3af' }}>Mayor donante completado</div>
+        </div>
+
+        {/* Categorías recibidas */}
+        <div style={{
+          background: 'linear-gradient(135deg, #7c3aed15, #7c3aed05)',
+          border: '1.5px solid #7c3aed30',
+          borderRadius: '16px',
+          padding: '20px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+        }}>
+          <div style={{ fontSize: '1.8rem' }}>📈</div>
+          <div style={{ fontSize: '0.85rem', color: '#6b7280', fontWeight: 600, marginBottom: '4px' }}>Categorías Recibidas</div>
+          {categoryBreakdownOng.length === 0
+            ? <div style={{ fontSize: '0.78rem', color: '#9ca3af', fontStyle: 'italic' }}>Sin recepciones aún</div>
+            : categoryBreakdownOng.map(({ cat, pct }) => (
+              <div key={cat} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.72rem', color: '#6b7280' }}>
+                <span style={{ width: '75px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cat}</span>
+                <div style={{ flex: 1, height: '5px', borderRadius: '3px', background: '#f3f4f6', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${pct}%`, background: '#7c3aed60', borderRadius: '3px' }} />
+                </div>
+                <span style={{ fontWeight: 700 }}>{pct}%</span>
+              </div>
+            ))
+          }
+        </div>
+
+        {/* % Donaciones urgentes disponibles */}
+        <div style={{
+          background: urgentAvailableRatio > 40
+            ? 'linear-gradient(135deg, #dc262615, #dc262605)'
+            : 'linear-gradient(135deg, #2D5A2715, #2D5A2705)',
+          border: `1.5px solid ${urgentAvailableRatio > 40 ? '#dc262630' : '#2D5A2730'}`,
+          borderRadius: '16px',
+          padding: '20px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+        }}>
+          <div style={{ fontSize: '1.8rem' }}>{urgentAvailableRatio > 40 ? '⚠️' : '✅'}</div>
+          <div style={{ fontSize: '1.7rem', fontWeight: 800, color: urgentAvailableRatio > 40 ? '#dc2626' : '#2D5A27' }}>
+            {urgentAvailableRatio}%
+          </div>
+          <div style={{ fontSize: '0.82rem', color: '#6b7280', fontWeight: 600 }}>Donaciones Urgentes</div>
+          <div style={{ fontSize: '0.74rem', color: '#9ca3af' }}>
+            {urgentAvailableRatio > 40 ? 'Alta urgencia — ¡actuá ya!' : 'Nivel de urgencia bajo'}
+          </div>
+          <div style={{ height: '6px', borderRadius: '3px', background: '#f3f4f6', overflow: 'hidden' }}>
+            <div style={{
+              height: '100%', width: `${urgentAvailableRatio}%`,
+              background: urgentAvailableRatio > 40
+                ? 'linear-gradient(90deg, #dc2626, #ef4444)'
+                : 'linear-gradient(90deg, #2D5A27, #3a7a32)',
+              borderRadius: '3px', transition: 'width 0.8s ease',
+            }} />
           </div>
         </div>
       </div>

@@ -239,6 +239,49 @@ const Dashboard: React.FC = () => {
     return products.filter((p) => p.estado === 'Descuento').length;
   }, [products]);
 
+  // --- MÉTRICAS DE IMPACTO ---
+  const kgRescatados = useMemo(() => {
+    // Estimado: 0.5 kg promedio por unidad donada
+    return donations
+      .filter(d => d.status === 'completed')
+      .reduce((sum, d) => sum + d.quantity * 0.5, 0);
+  }, [donations]);
+
+  const co2Evitado = useMemo(() => {
+    // Ref: 2.5 kg CO2 por kg de alimento no desperdiciado
+    return (kgRescatados * 2.5).toFixed(1);
+  }, [kgRescatados]);
+
+  const tasaDonacion = useMemo(() => {
+    if (totalProducts === 0) return 0;
+    const donados = products.filter(p => p.estado === 'Donado').length;
+    return Math.round((donados / totalProducts) * 100);
+  }, [products, totalProducts]);
+
+  const topCategory = useMemo(() => {
+    const completedDonations = donations.filter(d => d.status === 'completed');
+    if (completedDonations.length === 0) return 'Sin datos';
+    const countByCategory: Record<string, number> = {};
+    completedDonations.forEach(d => {
+      const cat = d.product_category || 'Otros';
+      countByCategory[cat] = (countByCategory[cat] || 0) + 1;
+    });
+    return Object.entries(countByCategory).sort((a, b) => b[1] - a[1])[0]?.[0] || 'Sin datos';
+  }, [donations]);
+
+  const categoryBreakdown = useMemo(() => {
+    const map: Record<string, number> = {};
+    donations.filter(d => d.status === 'completed').forEach(d => {
+      const cat = d.product_category || 'Otros';
+      map[cat] = (map[cat] || 0) + d.quantity;
+    });
+    const total = Object.values(map).reduce((a, b) => a + b, 0) || 1;
+    return Object.entries(map)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 4)
+      .map(([cat, qty]) => ({ cat, qty, pct: Math.round((qty / total) * 100) }));
+  }, [donations]);
+
   const today = new Date();
   const formattedDate = today.toLocaleDateString('es-CO', {
     weekday: 'long',
@@ -298,6 +341,95 @@ const Dashboard: React.FC = () => {
             <div className="stat-value">{discountProducts}</div>
             <div className="stat-title">Con Descuento</div>
           </div>
+        </div>
+      </div>
+
+      {/* ── MÉTRICAS DE IMPACTO AMBIENTAL Y SOCIAL ── */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+        gap: '16px',
+        margin: '0 0 24px',
+      }}>
+        {/* Kg Rescatados */}
+        <div style={{
+          background: 'linear-gradient(135deg, #00A99D15, #00A99D05)',
+          border: '1.5px solid #00A99D30',
+          borderRadius: '16px',
+          padding: '20px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '6px',
+        }}>
+          <div style={{ fontSize: '1.8rem' }}>🌿</div>
+          <div style={{ fontSize: '1.7rem', fontWeight: 800, color: '#00A99D' }}>{kgRescatados.toFixed(1)} kg</div>
+          <div style={{ fontSize: '0.82rem', color: '#6b7280', fontWeight: 600 }}>Alimentos Rescatados</div>
+          <div style={{ fontSize: '0.74rem', color: '#9ca3af' }}>Estimado a 0.5 kg/unidad</div>
+        </div>
+
+        {/* CO₂ Evitado */}
+        <div style={{
+          background: 'linear-gradient(135deg, #2D5A2715, #2D5A2705)',
+          border: '1.5px solid #2D5A2730',
+          borderRadius: '16px',
+          padding: '20px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '6px',
+        }}>
+          <div style={{ fontSize: '1.8rem' }}>☁️</div>
+          <div style={{ fontSize: '1.7rem', fontWeight: 800, color: '#2D5A27' }}>{co2Evitado} kg</div>
+          <div style={{ fontSize: '0.82rem', color: '#6b7280', fontWeight: 600 }}>CO₂ Evitado</div>
+          <div style={{ fontSize: '0.74rem', color: '#9ca3af' }}>Ref: 2.5 kg CO₂ por kg rescatado</div>
+        </div>
+
+        {/* Tasa de Donación */}
+        <div style={{
+          background: 'linear-gradient(135deg, #F5822015, #F5822005)',
+          border: '1.5px solid #F5822030',
+          borderRadius: '16px',
+          padding: '20px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+        }}>
+          <div style={{ fontSize: '1.8rem' }}>📊</div>
+          <div style={{ fontSize: '1.7rem', fontWeight: 800, color: '#F58220' }}>{tasaDonacion}%</div>
+          <div style={{ fontSize: '0.82rem', color: '#6b7280', fontWeight: 600 }}>Tasa de Donación</div>
+          <div style={{
+            height: '6px', borderRadius: '3px',
+            background: '#f3f4f6', overflow: 'hidden',
+          }}>
+            <div style={{
+              height: '100%', width: `${tasaDonacion}%`,
+              background: 'linear-gradient(90deg, #F58220, #f5a623)',
+              borderRadius: '3px', transition: 'width 0.8s ease',
+            }} />
+          </div>
+        </div>
+
+        {/* Categoría más donada + mini-breakdown */}
+        <div style={{
+          background: 'linear-gradient(135deg, #7c3aed15, #7c3aed05)',
+          border: '1.5px solid #7c3aed30',
+          borderRadius: '16px',
+          padding: '20px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+        }}>
+          <div style={{ fontSize: '1.8rem' }}>🏆</div>
+          <div style={{ fontSize: '1rem', fontWeight: 800, color: '#7c3aed' }}>{topCategory}</div>
+          <div style={{ fontSize: '0.82rem', color: '#6b7280', fontWeight: 600, marginBottom: '4px' }}>Categoría más donada</div>
+          {categoryBreakdown.map(({ cat, pct }) => (
+            <div key={cat} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.72rem', color: '#6b7280' }}>
+              <span style={{ width: '70px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cat}</span>
+              <div style={{ flex: 1, height: '5px', borderRadius: '3px', background: '#f3f4f6', overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${pct}%`, background: '#7c3aed50', borderRadius: '3px' }} />
+              </div>
+              <span style={{ fontWeight: 700 }}>{pct}%</span>
+            </div>
+          ))}
         </div>
       </div>
 
