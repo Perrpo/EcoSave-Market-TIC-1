@@ -33,6 +33,7 @@ const AuthForm: React.FC = () => {
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [nit, setNit] = useState('')
+  const [missionArea, setMissionArea] = useState('')  // TSK-006: solo para ONG
   const [role, setRole] = useState<Role>('supermarket')
   const [loginRole, setLoginRole] = useState<Role>('supermarket')
   const [password, setPassword] = useState('')
@@ -46,14 +47,42 @@ const AuthForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    // ── Validaciones detalladas ──────────────────────────────────────────────
     if (!email || !password) {
-      setError('Email y contraseña son requeridos')
+      setError('Email y contraseña son requeridos.')
       return
     }
 
-    if (tab === 'register' && (!businessName || !phone || !nit)) {
-      setError('Completa todos los campos para registrarte')
-      return
+    if (tab === 'register') {
+      if (!businessName.trim()) {
+        setError('El nombre o razón social es requerido.')
+        return
+      }
+      const phoneClean = phone.replace(/\s/g, '')
+      if (!phoneClean || !/^[+]?[0-9]{7,15}$/.test(phoneClean)) {
+        setError('Ingresa un número de teléfono válido (7–15 dígitos).')
+        return
+      }
+      if (!nit.trim() || !/^[0-9]{6,12}(-[0-9])?$/.test(nit.trim())) {
+        setError('Ingresa un NIT válido (ej. 900123456-1).')
+        return
+      }
+      if (role === 'ong' && !missionArea.trim()) {
+        setError('El área de misión es requerida para ONGs.')
+        return
+      }
+      if (password.length < 8) {
+        setError('La contraseña debe tener al menos 8 caracteres.')
+        return
+      }
+      if (!/[A-Z]/.test(password)) {
+        setError('La contraseña debe tener al menos una letra mayúscula.')
+        return
+      }
+      if (!/[0-9]/.test(password)) {
+        setError('La contraseña debe tener al menos un número.')
+        return
+      }
     }
 
     setIsLoading(true)
@@ -82,6 +111,7 @@ const AuthForm: React.FC = () => {
           setPhone('')
           setNit('')
           setRole('supermarket')
+          setMissionArea('')
           setPassword('')
         } else {
           setError(result.error || 'Error desconocido')
@@ -202,6 +232,25 @@ const AuthForm: React.FC = () => {
                   />
                 </label>
               </div>
+              {role === 'ong' && (
+                <label className="field">
+                  <span>Área de misión</span>
+                  <select
+                    value={missionArea}
+                    onChange={(e) => setMissionArea(e.target.value)}
+                    required
+                  >
+                    <option value="">Selecciona el área principal</option>
+                    <option value="Seguridad alimentaria">Seguridad alimentaria</option>
+                    <option value="Infancia y familia">Infancia y familia</option>
+                    <option value="Adulto mayor">Adulto mayor</option>
+                    <option value="Comunidades vulnerables">Comunidades vulnerables</option>
+                    <option value="Educación">Educación</option>
+                    <option value="Salud">Salud</option>
+                    <option value="Medio ambiente">Medio ambiente</option>
+                  </select>
+                </label>
+              )}
             </>
           )}
 

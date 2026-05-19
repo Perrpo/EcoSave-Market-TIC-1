@@ -138,6 +138,16 @@ const Dashboard: React.FC = () => {
       return;
     }
 
+
+    //--------------------------------------------------------------------
+    console.log('Enviando producto:', {
+      nombre: newProduct.nombre,
+      categoria: newProduct.categoria,
+      unidades: newProduct.unidades,
+      vencimiento: newProduct.vencimiento,
+    })
+    //--------------------------------------------------------------------
+
     try {
       const response = await apiService.createProduct({
         nombre: newProduct.nombre,
@@ -447,11 +457,7 @@ const Dashboard: React.FC = () => {
                               Donar
                             </TextureButton>
                           </div>
-                          <div style={{ width: '100px' }}>
-                            <TextureButton variant="ecosaveSecondary" size="sm" onClick={() => handleDiscount(p.id)} disabled={p.estado === 'Donado' || p.estado === 'Descuento'}>
-                              Descuento
-                            </TextureButton>
-                          </div>
+
                         </div>
                       </td>
                     </tr>
@@ -633,7 +639,17 @@ const Dashboard: React.FC = () => {
               <input
                 type="date"
                 value={newProduct.vencimiento}
-                onChange={(e) => setNewProduct({...newProduct, vencimiento: e.target.value})}
+                min={new Date().toISOString().split('T')[0]}
+                onChange={(e) => {
+                  const selected = new Date(e.target.value);
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  if (selected < today) {
+                    alert('La fecha de vencimiento no puede ser una fecha pasada.');
+                    return;
+                  }
+                  setNewProduct({...newProduct, vencimiento: e.target.value});
+                }}
               />
             </div>
             <div className="modal-actions">
