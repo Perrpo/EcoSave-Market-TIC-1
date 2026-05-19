@@ -186,7 +186,7 @@ export default class DonationService {
   }
 
   async getDonationStats(accessToken: string | undefined, ongId?: string, userId?: string) {
-    const repository = this.getRepository(accessToken)
+    const repository = this.getRepository(accessToken, true)
     const { data: donations, error } = await repository.getStats(ongId, userId)
 
     if (error) {

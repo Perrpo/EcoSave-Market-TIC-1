@@ -166,7 +166,7 @@ export default class DonationController {
         accessToken,
         ongId,
         id,
-        quantity ? Number(quantity) : undefined
+        quantity !== undefined && quantity !== null ? Number(quantity) : undefined
       )
 
       if (error) {
