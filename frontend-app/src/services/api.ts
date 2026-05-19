@@ -206,6 +206,18 @@ class ApiService {
       method: 'POST',
     });
   }
+
+  // Perfil
+  async getProfile() {
+    return this.request('/users/profile');
+  }
+
+  async updateProfile(data: { businessName?: string; phone?: string; nit?: string }) {
+    return this.request('/users/profile', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
 }
 
 export const apiService = new ApiService();

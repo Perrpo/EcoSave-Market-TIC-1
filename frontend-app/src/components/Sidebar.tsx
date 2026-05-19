@@ -47,12 +47,14 @@ const Sidebar: React.FC = () => {
         { to: '/dashboard-ong', label: 'Dashboard ONG', icon: '🤝' },
         { to: '/map', label: 'Puntos de Recolección', icon: '🗺️' },
         { to: '/notifications', label: 'Notificaciones', icon: '🔔', badge: unreadCount },
+        { to: '/profile', label: 'Mi Perfil', icon: '👤' },
       ]
     : [
         { to: '/dashboard', label: 'Dashboard Supermercado', icon: '🛒' },
         { to: '/integracion-inventario', label: 'Integración Inventario', icon: '🔗' },
         { to: '/map', label: 'Mapa de ONGs', icon: '🗺️' },
         { to: '/notifications', label: 'Notificaciones', icon: '🔔', badge: unreadCount },
+        { to: '/profile', label: 'Mi Perfil', icon: '👤' },
       ]
 
   const roleLabel = isAdmin ? 'Administrador' : isONG ? 'ONG' : 'Supermercado'

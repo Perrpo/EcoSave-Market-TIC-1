@@ -9,7 +9,8 @@ import DashboardONG from './pages/DashboardONG';
 import DashboardAdmin from './pages/DashboardAdmin';
 import Map from './pages/Map';
 import Notifications from './pages/Notifications';
-import IntegracionInventario from './pages/IntegracionInventario';
+import IntegracionInventario from './pages/IntegracionInventario'
+import Profile from './pages/Profile';
 
 const AppContent: React.FC = () => {
   const { isAuthenticated, user, isReady } = useAuth();
@@ -56,6 +57,7 @@ const AppContent: React.FC = () => {
           <Route path="/map" element={<Map />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/integracion-inventario" element={<IntegracionInventario />} />
+          <Route path="/profile" element={<Profile />} />
 
           {/* Fallback: redirige al dashboard correcto */}
           <Route path="*" element={<Navigate to={getDefaultRoute()} replace />} />

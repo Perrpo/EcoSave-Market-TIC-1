@@ -1,0 +1,150 @@
+.profile-page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding-bottom: 2rem;
+}
+
+.profile-card {
+  background: #fff;
+  border: 1px solid #E9ECEF;
+  border-radius: 14px;
+  padding: 28px;
+}
+
+.profile-avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #E9ECEF;
+}
+
+.profile-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #2D5A27;
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.profile-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--ink, #333);
+  margin: 0 0 6px;
+}
+
+.profile-role-badge {
+  display: inline-block;
+  background: #EAF4E8;
+  color: #2D5A27;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.form-group label {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--ink, #333);
+}
+
+.form-group input {
+  padding: 10px 12px;
+  border: 1px solid #CED4DA;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: var(--ink, #333);
+  background: #fff;
+  transition: border-color 150ms ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #2D5A27;
+}
+
+.input-readonly {
+  background: #F8F9FA !important;
+  color: #868E96 !important;
+  cursor: not-allowed;
+}
+
+.field-hint {
+  font-size: 0.78rem;
+  color: #868E96;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 480px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.profile-alert {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.profile-alert--success {
+  background: #EAF4E8;
+  color: #2D5A27;
+  border: 1px solid #A8D5A2;
+}
+
+.profile-alert--error {
+  background: #FFF3CD;
+  color: #856404;
+  border: 1px solid #FFE69C;
+}
+
+.btn-primary {
+  align-self: flex-start;
+  background: #2D5A27;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #1F3E1B;
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

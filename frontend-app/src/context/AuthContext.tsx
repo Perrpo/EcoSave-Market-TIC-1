@@ -19,6 +19,7 @@ interface AuthContextType {
   register: (email: string, password: string, businessName: string, phone: string, nit: string, role: 'supermarket' | 'ong' | 'admin') => Promise<{ success: boolean; error?: string; message?: string }>;
   logout: () => void;
   getAuthHeaders: () => Record<string, string>;
+  updateUser: (data: Partial<Pick<User, 'businessName' | 'phone' | 'nit'>>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -124,6 +125,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.removeItem('user');
   }, []);
 
+  const updateUser = useCallback((data: Partial<Pick<User, 'businessName' | 'phone' | 'nit'>>) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev, ...data };
+      localStorage.setItem('user', JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
   const getAuthHeaders = useCallback(() => {
     return {
       Authorization: `Bearer ${token}`,
@@ -142,6 +152,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         register,
         logout,
         getAuthHeaders,
+        updateUser,
       }}
     >
       {children}

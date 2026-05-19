@@ -26,6 +26,8 @@ router.group(() => {
   })
 
   // Users
+  router.get('/users/profile', '#controllers/http/user_controller.getProfile')
+  router.patch('/users/profile', '#controllers/http/user_controller.updateProfile')
   router.resource('users', '#controllers/http/user_controller').apiOnly()
   
   // Products
