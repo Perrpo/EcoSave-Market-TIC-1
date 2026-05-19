@@ -2,7 +2,7 @@
 
 <img src="https://img.shields.io/badge/EcoSave%20Market-Sostenibilidad%20y%20Confianza-2ea44f?style=for-the-badge&logo=leaf&logoColor=white" alt="EcoSave Market"/>
 
-# 🌱 EcoSave Market
+# EcoSave Market
 
 **Plataforma web para reducir el desperdicio de alimentos conectando supermercados y ONGs**
 
@@ -17,7 +17,7 @@
 
 ---
 
-## 📖 ¿Qué es EcoSave Market?
+## ¿Qué es EcoSave Market?
 
 EcoSave Market es una plataforma web de economía circular que **conecta supermercados con productos próximos a vencer y ONGs que necesitan alimentos**. El sistema elimina la barrera logística entre ambos actores, permitiendo gestionar donaciones de forma trazable, rápida y transparente.
 
@@ -25,33 +25,36 @@ EcoSave Market es una plataforma web de economía circular que **conecta superme
 
 ---
 
-## ✨ Funcionalidades principales
+## Funcionalidades principales
 
-### 🏪 Para Supermercados
+### Para Supermercados
 - Registrar productos próximos a vencer con fecha de vencimiento y unidades
 - Publicar donaciones disponibles para ONGs
 - Ver historial completo de donaciones realizadas
 - Recibir notificaciones cuando una ONG solicita sus productos
+- Generar certificados PDF de donación con deducción tributaria (Ley 2380/2024)
+- Enviar reportes consolidados por correo electrónico
 - Dashboard con métricas de impacto (productos donados, kg rescatados)
 
-### 🤝 Para ONGs
+### Para ONGs
 - Explorar donaciones disponibles en tiempo real
-- Solicitar alimentos con un clic
+- Solicitar alimentos con cantidad específica (solicitudes parciales)
 - Confirmar recepción y cerrar el ciclo de la donación
 - Consultar mapa de puntos de recolección con filtros por especialidad
 - Historial de recepciones y estadísticas de impacto
 
-### 🔐 Sistema de Roles
-- Registro con selección de rol (**Supermercado** o **ONG**)
-- Login sin requerir rol — el sistema detecta y redirige automáticamente
+### Sistema de Roles
+- **Dos roles:** `supermarket` (supermercado) y `ong`
+- Registro con selección de rol obligatoria
+- Login sin requerir rol — el sistema detecta y redirige automáticamente al dashboard correspondiente
 - Dashboards completamente independientes por rol
 - Rutas protegidas según el tipo de usuario
 
 ---
 
-## 🏗️ Arquitectura por Capas (Layered Architecture)
+## Arquitectura por Capas
 
-El proyecto ha migrado de una estructura monolítica a una **arquitectura por capas**, garantizando separación de responsabilidades, alta mantenibilidad y escalabilidad.
+El proyecto implementa una **arquitectura por capas** (Controller-Service-Repository), garantizando separación de responsabilidades y alta mantenibilidad.
 
 ### Estructura de Directorios
 
@@ -59,49 +62,47 @@ El proyecto ha migrado de una estructura monolítica a una **arquitectura por ca
 EcoSave-Market-TIC-1/
 ├── frontend-app/          # Cliente React (Vite + TypeScript)
 │   └── src/
-│       ├── components/    # Componentes UI reutilizables (Sidebar, Modals)
+│       ├── components/    # Componentes UI reutilizables (Sidebar, AuthForm)
 │       ├── context/       # Estados globales (AuthContext, NotificationContext)
-│       ├── pages/         # Vistas principales separadas por rol (DashboardONG, etc.)
-│       └── services/      # Cliente API encapsulado (api.ts) para llamadas al backend
+│       ├── pages/         # Vistas por rol (Dashboard, DashboardONG, Map...)
+│       └── services/      # Cliente API encapsulado (api.ts)
 │
 ├── backend-app/           # API REST (AdonisJS 6 + TypeScript)
 │   └── app/
-│       ├── controllers/   # Capa de Presentación: Maneja peticiones HTTP y respuestas
-│       ├── services/      # Capa de Negocio: Lógica central, validaciones y reglas
-│       └── repositories/  # Capa de Acceso a Datos: Interacción exclusiva con Supabase (SQL)
+│       ├── controllers/   # Capa HTTP: maneja peticiones y respuestas
+│       ├── services/      # Capa de negocio: lógica central y reglas de dominio
+│       └── repositories/  # Capa de datos: interacción exclusiva con Supabase
 │
 └── Docs/                  # Documentación del proyecto
 ```
 
-### Patrón de Diseño del Backend
+### Patrón Controller-Service-Repository
 
-El backend implementa el patrón **Controller-Service-Repository**:
-
-1.  **Controllers (`app/controllers/http/`):** Reciben las peticiones HTTP, extraen el token JWT, y delegan toda la lógica a los servicios. No contienen consultas a la base de datos.
-2.  **Services (`app/services/`):** Contienen el "cerebro" de la aplicación. Orquestan múltiples repositorios (ej: `DonationService` llama a `ProductRepository` y `NotificationRepository`), emiten eventos y aplican reglas de negocio (ej: verificar que una donación siga disponible).
-3.  **Repositories (`app/repositories/`):** Son la única capa que interactúa con la base de datos (Supabase). Aislan las consultas de la base de datos del resto de la aplicación, haciendo el código más testeable.
+1. **Controllers** — Reciben la petición HTTP, extraen el token JWT y delegan al servicio. Sin lógica de negocio ni consultas a base de datos.
+2. **Services** — Orquestan repositorios, aplican reglas de negocio (verificar disponibilidad, redistribuir sobrantes, emitir notificaciones) y coordinan efectos secundarios (emails, certificados PDF).
+3. **Repositories** — Única capa que habla con Supabase. Aíslan las consultas SQL del resto de la aplicación.
 
 ### Stack Tecnológico
 
 | Capa | Tecnología | Propósito |
-|------|-----------|-----|
-| **Frontend UI** | React 19 + TypeScript 5.9 | Construcción de interfaces reactivas |
+|------|-----------|-----------|
+| **Frontend UI** | React 19 + TypeScript 5.9 | Interfaces reactivas con SPA |
 | **Build tool** | Vite 7 | Compilación y HMR en desarrollo |
-| **Styling** | Vanilla CSS | Diseño limpio basado en tokens CSS |
+| **Styling** | Vanilla CSS + componentes UI propios | Diseño basado en tokens CSS |
 | **Backend API** | AdonisJS 6 + TypeScript 5.8 | Enrutamiento HTTP, middleware y validaciones |
-| **Base de datos** | Supabase (PostgreSQL) | Almacenamiento centralizado y RLS |
+| **Base de datos** | Supabase (PostgreSQL) | Almacenamiento centralizado con RLS |
 | **Notificaciones** | HTTP Polling | Sincronización asíncrona entre roles |
-| **Contenedores** | Docker + Docker Compose | Despliegue reproducible en cualquier máquina |
+| **Contenedores** | Docker + Docker Compose | Despliegue reproducible |
 
 ---
 
-## 🗄️ Modelo de datos
+## Modelo de datos
 
 ```
 profiles          products           donations          locations
 ─────────         ────────           ─────────          ─────────
 id (FK auth)      id                 id                 id
-roles[]           user_id (FK)       product_id (FK)    nombre
+role              user_id (FK)       product_id (FK)    nombre
 business_name     nombre             user_id (FK)       tipo (ONG/SUPERMERCADO)
 phone             categoria          ong_id (FK)        direccion
 nit               unidades           status             especialidades (jsonb)
@@ -111,15 +112,16 @@ nit               unidades           status             especialidades (jsonb)
 notifications     orders             email_logs
 ─────────────     ──────             ──────────
 id                id                 id
-user_id (FK)      ...                ...
-mensaje
-leida
-created_at
+user_id (FK)      donation_id (FK)   recipient_email
+mensaje           ong_id (FK)        subject
+leida             cantidad           sent_at
+created_at        status
+                  created_at
 ```
 
 ---
 
-## 🚀 Cómo iniciar la plataforma
+## Cómo iniciar la plataforma
 
 ### Opción A — Docker (recomendado)
 
@@ -128,8 +130,6 @@ La forma más rápida. No requiere instalar Node.js ni configurar dependencias m
 **Requisitos:**
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado y corriendo
 
-**Pasos:**
-
 **1. Clonar el repositorio**
 ```bash
 git clone https://github.com/Perrpo/EcoSave-Market-TIC-1.git
@@ -137,7 +137,6 @@ cd EcoSave-Market-TIC-1
 ```
 
 **2. Crear el archivo de entorno del backend**
-<<<<<<< HEAD
 ```bash
 cp backend-app/.env.example backend-app/.env
 ```
@@ -190,78 +189,8 @@ docker compose up --build
 Para modificar código con hot-reload.
 
 **Requisitos:**
-- Node.js ≥ 20
-- npm ≥ 9
-- Una cuenta en [Supabase](https://supabase.com) con proyecto creado
-
-**1. Clonar el repositorio**
-```bash
-git clone https://github.com/Perrpo/EcoSave-Market-TIC-1.git
-cd EcoSave-Market-TIC-1
-```
-
-**2. Configurar y arrancar el backend**
-```bash
-cd backend-app
-cp .env.example .env
-# Editar .env con las credenciales reales de Supabase y Gmail
-npm install
-=======
-```bash
-cp backend-app/.env.example backend-app/.env
->>>>>>> 3396147 (feat: integrar Cult UI, solicitudes parciales, logica de sobrantes y modernizacion mapa)
-```
-
-Abrir `backend-app/.env` y completar con las credenciales reales:
-
-```env
-SUPABASE_URL=https://tu-proyecto.supabase.co
-SUPABASE_KEY=tu-supabase-anon-key
-APP_KEY=una-cadena-aleatoria-segura
-EMAIL_USER=tu-email@gmail.com
-EMAIL_PASSWORD=tu-app-password-de-gmail
-PORT=3333
-HOST=0.0.0.0
-NODE_ENV=development
-LOG_LEVEL=info
-FRONTEND_URL=http://localhost:5173
-```
-
-**3. Construir y levantar los contenedores**
-```bash
-docker compose up --build
-```
-
-La primera vez puede tardar 2–3 minutos mientras se construyen las imágenes.
-
-**4. Abrir en el navegador**
-
-| Servicio | URL |
-|---------|-----|
-| Frontend | http://localhost |
-| Backend (health check) | http://localhost:3333/api/v1/health |
-
-**Comandos útiles:**
-```bash
-# Ver logs en tiempo real
-docker compose logs --follow
-
-# Detener los contenedores
-docker compose down
-
-# Reconstruir después de cambios en el código
-docker compose up --build
-```
-
----
-
-### Opción B — Desarrollo local
-
-Para modificar código con hot-reload.
-
-**Requisitos:**
-- Node.js ≥ 20
-- npm ≥ 9
+- Node.js >= 20
+- npm >= 9
 - Una cuenta en [Supabase](https://supabase.com) con proyecto creado
 
 **1. Clonar el repositorio**
@@ -284,7 +213,6 @@ El backend queda en `http://localhost:3333`.
 **3. Configurar y arrancar el frontend**
 ```bash
 cd ../frontend-app
-# El archivo .env ya existe con la URL por defecto
 npm install
 npm run dev
 ```
@@ -293,28 +221,31 @@ El frontend queda en `http://localhost:5173`.
 
 ---
 
-## 🔁 Flujo principal del sistema
+## Flujo principal del sistema
 
 ```
 Supermercado registra         ONG explora
 producto próximo a vencer  →  donaciones disponibles
         ↓                            ↓
 Se publica como donación   →  ONG solicita el producto
-        ↓                            ↓
-Supermercado recibe         Sistema actualiza estado
-notificación                y notifica al supermercado
-        ↓                            ↓
-                    ONG confirma recepción
-                            ↓
-              Donación completada — queda registrada
-              en historial de ambos actores
+        ↓                     (cantidad parcial o total)
+Supermercado recibe                  ↓
+notificación              Sistema actualiza estado
+        ↓                 y notifica al supermercado
+                   ONG confirma recepción
+                           ↓
+             Donación completada — queda registrada
+             en historial de ambos actores
+                           ↓
+              Si quedan sobrantes → redistribución
+              automática a otras ONGs disponibles
 ```
 
 ---
 
-## 🔐 Seguridad — Row Level Security (RLS)
+## Seguridad — Row Level Security (RLS)
 
-Las políticas RLS de Supabase garantizan el aislamiento de datos:
+Las políticas RLS de Supabase garantizan el aislamiento de datos entre roles:
 
 | Tabla | Política | Operación | Descripción |
 |-------|----------|-----------|-------------|
@@ -328,58 +259,68 @@ Las políticas RLS de Supabase garantizan el aislamiento de datos:
 
 ---
 
-## 📋 Historias de usuario implementadas
+## Pruebas
+
+El proyecto cuenta con una suite de pruebas unitarias y funcionales para el backend:
+
+```bash
+cd backend-app
+npm test
+```
+
+| Tipo | Archivo | Cobertura |
+|------|---------|-----------|
+| Unitaria | `order_validator.spec.ts` | Validación de órdenes |
+| Unitaria | `product_service.spec.ts` | Lógica de productos |
+| Unitaria | `donation_service.spec.ts` | Lógica de donaciones |
+| Funcional | `auth.spec.ts` | Endpoints de autenticación |
+| Funcional | `products.spec.ts` | Endpoints de productos |
+| Funcional | `donations.spec.ts` | Endpoints de donaciones |
+
+---
+
+## Historias de usuario implementadas
 
 | ID | Historia | Estado |
 |----|----------|--------|
 | HU01 | Inicio de sesión con redirección automática por rol | ✅ |
 | HU02 | Registro de productos próximos a vencer | ✅ |
 | HU03 | Consulta de donaciones disponibles (ONG) | ✅ |
-| HU04 | Solicitud de donación por parte de ONG | ✅ |
+| HU04 | Solicitud de donación por parte de ONG (parcial o total) | ✅ |
 | HU05 | Confirmación de recepción | ✅ |
 | HU06 | Mapa de puntos de recolección con filtros | ✅ |
-| HU07 | Sistema de notificaciones en tiempo real (Backend polling) | ✅ |
+| HU07 | Sistema de notificaciones en tiempo real (polling) | ✅ |
 | HU08 | Historial persistente de donaciones | ✅ |
 | HU09 | Métricas de impacto por dashboard | ✅ |
-| HU10 | Panel administrativo | 🟡 Parcial |
+| HU10 | Certificados PDF con deducción tributaria (Ley 2380/2024) | ✅ |
+| HU11 | Envío de reportes consolidados por correo electrónico | ✅ |
+| HU12 | Redistribución inteligente de sobrantes | ✅ |
 
 ---
 
-## 🚧 Roadmap
-
-- [x] **Solicitudes parciales** — permitir solicitar una cantidad específica (no toda la donación) ✅
-- [x] **Comprobante PDF** — certificados de donación con deducción tributaria (Ley 2380/2024) ✅
-- [x] **Envío de certificados por correo** — enviar reportes consolidados a cualquier email ✅
-- [x] **Redistribución inteligente** — asignación automática de sobrantes a otras ONGs ✅
-- [ ] **Dashboard Admin completo** — métricas globales conectadas al backend real
-
----
-
-## 📌 Estado actual
+## Estado actual
 
 ```
-✅ Autenticación completa con roles (supermarket / ong)
+✅ Autenticación completa con dos roles (supermarket / ong)
 ✅ Dashboard Supermercado funcional
 ✅ Dashboard ONG funcional
 ✅ Flujo completo de donaciones (crear → solicitar → confirmar)
-✅ Sistema de notificaciones persistentes (con polling al backend)
+✅ Solicitudes parciales implementadas
+✅ Redistribución inteligente de sobrantes
+✅ Sistema de notificaciones persistentes (polling al backend)
 ✅ Mapa de puntos de recolección (tabla locations)
 ✅ RLS configurado en products y donations
 ✅ API REST con AdonisJS 6 (puerto 3333)
-✅ Protección de rutas por rol (previene el acceso cruzado entre dashboards)
-✅ Certificados PDF de donación (Ley 2380/2024) con deducción tributaria del 37%
+✅ Protección de rutas por rol
+✅ Certificados PDF de donación (Ley 2380/2024)
 ✅ Envío de reportes consolidados por correo electrónico (SMTP Gmail)
-✅ Sección de solicitudes de ONGs visible en Dashboard Supermercado
-✅ Dashboard ONG rediseñado con tarjetas, filtros y urgencia de vencimiento
 ✅ Keep-Alive service para prevenir dormancia del backend
-✅ Solicitudes parciales implementadas
-✅ Redistribución inteligente de sobrantes
-🟡 Dashboard Admin parcialmente conectado
+✅ Suite de pruebas unitarias y funcionales (backend)
 ```
 
 ---
 
-## 👥 Equipo
+## Equipo
 
 Proyecto académico de transformación digital desarrollado en la **Universidad Pontificia Bolivariana** — enfocado en economía circular, reducción del desperdicio alimentario y responsabilidad social empresarial.
 
@@ -387,6 +328,6 @@ Proyecto académico de transformación digital desarrollado en la **Universidad 
 
 <div align="center">
 
-Hecho con 💚 en Medellín, Colombia
+Hecho con amor en Medellín, Colombia
 
 </div>
