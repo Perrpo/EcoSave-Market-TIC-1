@@ -186,13 +186,32 @@ const AuthForm: React.FC = () => {
             <p className="eyebrow">Bienvenido</p>
             <h2>{tab === 'login' ? 'Inicia sesión' : 'Crear cuenta'}</h2>
           </div>
-          <TextureButton
-            variant="minimal"
+          <button
             type="button"
             onClick={() => setTab(tab === 'login' ? 'register' : 'login')}
+            style={{
+              background: 'transparent',
+              border: '1.5px solid #00A99D',
+              color: '#00A99D',
+              borderRadius: '8px',
+              padding: '8px 16px',
+              fontWeight: 600,
+              fontSize: '0.875rem',
+              cursor: 'pointer',
+              transition: 'background 150ms ease, color 150ms ease',
+              whiteSpace: 'nowrap',
+            }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLButtonElement).style.background = '#00A99D'
+              ;(e.currentTarget as HTMLButtonElement).style.color = '#fff'
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLButtonElement).style.background = 'transparent'
+              ;(e.currentTarget as HTMLButtonElement).style.color = '#00A99D'
+            }}
           >
             {tab === 'login' ? 'Quiero registrarme' : 'Ya tengo cuenta'}
-          </TextureButton>
+          </button>
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">

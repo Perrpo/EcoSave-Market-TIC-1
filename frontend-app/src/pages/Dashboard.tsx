@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import { useNotifications } from '../context/NotificationContext'
 import apiService from '../services/api'
 import './Dashboard.css'
-import { TextureCardStyled, TextureCardHeader, TextureCardTitle, TextureCardDescription, TextureCardContent, TextureSeparator } from '../components/ui/texture-card'
+// texture-card imports retained for other usage if any
 import { TextureButton } from '../components/ui/texture-button'
 
 const BoxIcon = () => (
@@ -29,13 +29,7 @@ const HeartIcon = () => (
   </svg>
 )
 
-const PercentIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="19" x2="5" y1="5" y2="19" />
-    <circle cx="6.5" cy="6.5" r="2.5" />
-    <circle cx="17.5" cy="17.5" r="2.5" />
-  </svg>
-)
+
 
 const PackageIcon = () => (
   <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -235,10 +229,6 @@ const Dashboard: React.FC = () => {
     return donations.filter(d => d.status === 'completed').length;
   }, [donations]);
 
-  const discountProducts = useMemo(() => {
-    return products.filter((p) => p.estado === 'Descuento').length;
-  }, [products]);
-
   // --- MÉTRICAS DE IMPACTO ---
   const kgRescatados = useMemo(() => {
     // Estimado: 0.5 kg promedio por unidad donada
@@ -335,13 +325,7 @@ const Dashboard: React.FC = () => {
             <div className="stat-title">Donados</div>
           </div>
         </div>
-        <div className="stat-box">
-          <span className="stat-icon"><PercentIcon /></span>
-          <div>
-            <div className="stat-value">{discountProducts}</div>
-            <div className="stat-title">Con Descuento</div>
-          </div>
-        </div>
+
       </div>
 
       {/* ── MÉTRICAS DE IMPACTO AMBIENTAL Y SOCIAL ── */}
@@ -581,27 +565,34 @@ const Dashboard: React.FC = () => {
         </div>
 
         <div className="notif-list">
-          <TextureCardStyled>
-            <TextureCardHeader>
-              <TextureCardTitle>Alertas de vencimiento</TextureCardTitle>
-              <TextureCardDescription>Productos que requieren acción</TextureCardDescription>
-            </TextureCardHeader>
-            <TextureSeparator />
-            <TextureCardContent className="space-y-4">
+          <div className="card" style={{ padding: '20px' }}>
+            <div style={{ marginBottom: '12px' }}>
+              <h3 style={{ margin: '0 0 4px', fontSize: '1rem', fontWeight: 700, color: 'var(--ink)' }}>⚠️ Alertas de vencimiento</h3>
+              <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--muted)' }}>Productos que requieren acción</p>
+            </div>
+            <div style={{ borderTop: '1px solid var(--stroke)', paddingTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {products.filter(p => getExpiryClass(p.vencimiento) !== 'green').map(p => (
-                <div key={p.id} className="flex justify-between items-center bg-gray-50/50 p-3 rounded-xl border border-gray-100">
+                <div key={p.id} style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  background: 'var(--bg)',
+                  border: '1px solid var(--stroke)',
+                  borderRadius: '10px',
+                  padding: '10px 12px',
+                }}>
                   <div>
-                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{p.categoria}</div>
-                    <div className="font-medium text-gray-900">{p.nombre}</div>
+                    <div style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{p.categoria}</div>
+                    <div style={{ fontWeight: 600, color: 'var(--ink)', fontSize: '0.9rem' }}>{p.nombre}</div>
                   </div>
-                  <div className={`tag ${getExpiryClass(p.vencimiento)}`}>{new Date(p.vencimiento).toLocaleDateString()}</div>
+                  <span className={`tag ${getExpiryClass(p.vencimiento)}`}>{new Date(p.vencimiento).toLocaleDateString()}</span>
                 </div>
               ))}
               {products.filter(p => getExpiryClass(p.vencimiento) !== 'green').length === 0 && (
-                <div className="text-sm text-gray-500 italic">Sin alertas por ahora</div>
+                <div style={{ fontSize: '0.875rem', color: 'var(--muted)', fontStyle: 'italic' }}>Sin alertas por ahora ✅</div>
               )}
-            </TextureCardContent>
-          </TextureCardStyled>
+            </div>
+          </div>
         </div>
       </div>
 

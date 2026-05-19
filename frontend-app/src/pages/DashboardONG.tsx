@@ -573,35 +573,6 @@ const DashboardONG: React.FC = () => {
                           </TextureButton>
                         </div>
                       )}
-                      <div style={{ marginTop: '4px', width: '100%' }}>
-                        <TextureButton 
-                          variant="ecosaveSecondary"
-                          size="sm"
-                          className="w-full"
-                          onClick={() => {
-                            const token = localStorage.getItem('token');
-                            fetch(`http://localhost:3333/api/v1/donations/${request.id}/certificate`, {
-                              headers: token ? { Authorization: `Bearer ${token}` } : {}
-                            })
-                            .then(res => res.blob())
-                            .then(blob => {
-                              const url = window.URL.createObjectURL(blob);
-                              const a = document.createElement('a');
-                              a.href = url;
-                              a.download = `certificado-recepcion-${request.id.slice(0,8)}.pdf`;
-                              document.body.appendChild(a);
-                              a.click();
-                              window.URL.revokeObjectURL(url);
-                            })
-                            .catch(err => {
-                              console.error('Error downloading certificate', err);
-                              alert('Error al descargar el certificado');
-                            });
-                          }}
-                        >
-                          Generar PDF
-                        </TextureButton>
-                      </div>
                     </div>
                   </div>
                 ))
