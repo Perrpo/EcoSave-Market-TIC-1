@@ -218,26 +218,6 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const handleDiscount = async (productId: string) => {
-    const product = products.find(p => p.id === productId);
-    if (!product) return;
-
-    try {
-      const response = await apiService.updateProduct(productId, {
-        estado: 'Descuento'
-      });
-
-      if (response.success) {
-        await loadProducts(); // Reload to see the updated state
-      } else {
-        alert('Error al actualizar producto: ' + response.message);
-      }
-    } catch (error) {
-      console.error('Error updating product:', error);
-      alert('Error al actualizar producto. Inténtalo de nuevo.');
-    }
-  };
-
   // Estadísticas dinámicas
   const totalProducts = useMemo(() => products.length, [products]);
 
