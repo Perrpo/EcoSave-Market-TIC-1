@@ -1,49 +1,79 @@
+/* ─────────────────────────────────────────────
+   Map Dashboard — EcoSave Market
+   ───────────────────────────────────────────── */
+
 .map-dashboard {
-  max-width: 1000px;
+  max-width: 1100px;
   margin: 0 auto;
-  padding-bottom: 2rem;
+  padding-bottom: 3rem;
 }
 
-.page-header h1 {
+/* Hero */
+.map-hero {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.map-hero-badge {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #00A99D20, #00A99D08);
+  border: 1.5px solid #00A99D30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 1.5rem;
-  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.map-hero-title {
+  font-size: 1.6rem;
+  font-weight: 800;
   margin: 0;
   color: var(--ink);
+  letter-spacing: -0.5px;
 }
 
-.subtitle.muted {
+.map-hero-sub {
+  margin: 4px 0 0;
   color: var(--muted);
-  margin: 6px 0 16px;
+  font-size: 0.9rem;
 }
 
+/* Buscador */
 .search-card {
   background: var(--card);
   border: 1px solid var(--stroke);
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 16px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
 }
 
 .search-box {
   display: flex;
   align-items: center;
   gap: 10px;
-  border: 1px solid var(--stroke);
+  border: 1.5px solid var(--stroke);
   border-radius: 10px;
-  padding: 10px 12px;
-  transition: border-color 120ms ease;
+  padding: 10px 14px;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+  background: var(--card);
 }
 
 .search-box:focus-within {
-  border-color: #2D5A27;
-  box-shadow: 0 0 0 3px rgba(45, 90, 39, 0.08);
+  border-color: #00A99D;
+  box-shadow: 0 0 0 3px rgba(0,169,157,0.10);
 }
 
 .search-box input {
   border: none;
   outline: none;
   width: 100%;
-  font-size: 1rem;
+  font-size: 0.95rem;
   background: transparent;
   color: var(--ink);
 }
@@ -56,91 +86,292 @@
 }
 
 .pill {
-  border: 1px solid var(--stroke);
+  border: 1.5px solid var(--stroke);
   border-radius: 999px;
-  padding: 8px 14px;
+  padding: 6px 14px;
   background: transparent;
   cursor: pointer;
-  font-weight: 700;
+  font-weight: 600;
+  font-size: 0.84rem;
   color: var(--ink);
-  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+  transition: all 120ms ease;
 }
 
 .pill:hover {
-  border-color: #2D5A27;
-  color: #2D5A27;
+  border-color: #00A99D;
+  color: #00A99D;
 }
 
 .pill.active {
-  background: #2D5A27;
+  background: #00A99D;
   color: #fff;
-  border-color: #2D5A27;
+  border-color: #00A99D;
 }
 
+/* Grid */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 18px;
 }
 
-.ong-card {
-  border: 1px solid var(--stroke);
-  border-radius: 12px;
-  padding: 16px;
+/* Tarjeta de ubicación */
+.loc-card {
+  border-radius: 16px;
+  border: 1.5px solid var(--stroke);
   background: var(--card);
-  box-shadow: var(--shadow-1);
-  transition: box-shadow 180ms ease, transform 180ms ease;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  transition: transform 200ms ease, box-shadow 200ms ease;
+  display: flex;
+  flex-direction: column;
 }
 
-.ong-card:hover {
-  box-shadow: var(--shadow-2);
-  transform: translateY(-2px);
+.loc-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.10);
 }
 
-.ong-head {
+/* Franja de color */
+.loc-card-stripe {
+  height: 5px;
+  width: 100%;
+}
+
+.stripe--teal {
+  background: linear-gradient(90deg, #00A99D, #00c4b7);
+}
+
+.stripe--green {
+  background: linear-gradient(90deg, #2D5A27, #3a7a32);
+}
+
+.loc-card-body {
+  padding: 18px 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+/* Cabecera */
+.loc-card-head {
   display: flex;
   gap: 12px;
-  align-items: center;
+  align-items: flex-start;
 }
 
-.ong-name {
-  margin: 0;
-  font-weight: 600;
-  color: var(--ink);
-}
-
-.ong-address {
+.loc-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.icon--teal {
+  background: #00A99D18;
+  border: 1.5px solid #00A99D30;
+}
+
+.icon--green {
+  background: #2D5A2718;
+  border: 1.5px solid #2D5A2730;
+}
+
+.loc-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.loc-name {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.3;
+}
+
+.loc-address {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.loc-address svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* Badges */
+.loc-type-badge {
+  display: flex;
   gap: 6px;
+  flex-wrap: wrap;
+}
+
+.type-pill {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.type-pill--teal {
+  background: #00A99D18;
+  color: #00A99D;
+}
+
+.type-pill--green {
+  background: #2D5A2718;
+  color: #2D5A27;
+}
+
+.type-pill--gray {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+/* Tags */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.tag--teal {
+  background: #00A99D12;
+  color: #007a73;
+  border: 1px solid #00A99D25;
+}
+
+.tag--green {
+  background: #e8f5e4;
+  color: #2D5A27;
+  border: 1px solid #2D5A2725;
+}
+
+.tag--more {
+  background: #f9fafb;
+  color: #6b7280;
+  border: 1px solid #e5e7eb;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.tag--more:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+/* Link Google Maps */
+.loc-maps-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: #6b7280;
+  text-decoration: none;
+  padding: 5px 0;
+  transition: color 120ms ease;
+}
+
+.loc-maps-link:hover {
+  color: #374151;
+}
+
+/* Botón de acción */
+.loc-action {
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+.loc-btn {
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 160ms ease;
+  letter-spacing: 0.1px;
+}
+
+.loc-btn--teal {
+  background: linear-gradient(135deg, #00A99D, #00b8ab);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0,169,157,0.25);
+}
+
+.loc-btn--teal:hover {
+  background: linear-gradient(135deg, #009088, #00a89b);
+  box-shadow: 0 4px 14px rgba(0,169,157,0.35);
+  transform: translateY(-1px);
+}
+
+.loc-btn--green {
+  background: linear-gradient(135deg, #2D5A27, #3a7a32);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(45,90,39,0.25);
+}
+
+.loc-btn--green:hover {
+  background: linear-gradient(135deg, #24481f, #2f6428);
+  box-shadow: 0 4px 14px rgba(45,90,39,0.35);
+  transform: translateY(-1px);
+}
+
+/* Loading */
+.map-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 60px 20px;
   color: var(--muted);
   font-size: 0.9rem;
 }
 
-.tags {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 12px;
+.map-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #00A99D;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
 }
 
-.tag {
-  background: #e8f5e4;
-  color: #2D5A27;
-  padding: 6px 10px;
-  border-radius: 10px;
-  font-size: 0.85rem;
-  font-weight: 700;
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
+/* Empty state */
 .empty-state {
-  border: 1px dashed var(--stroke);
-  border-radius: 12px;
-  padding: 24px;
+  border: 1.5px dashed var(--stroke);
+  border-radius: 14px;
+  padding: 40px 24px;
   text-align: center;
   color: var(--muted);
   display: grid;
-  gap: 6px;
+  gap: 8px;
   place-items: center;
 }
 
@@ -148,9 +379,11 @@
   margin: 0;
   font-weight: 700;
   color: var(--ink);
+  font-size: 1rem;
 }
 
 .empty-sub {
   margin: 0 0 8px;
   color: var(--muted);
+  font-size: 0.88rem;
 }
