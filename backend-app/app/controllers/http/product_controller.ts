@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import supabaseService from '#services/supabase_service'
 import ProductService from '#services/product_service'
+import DonationService from '#services/donation_service'
 
 export default class ProductController {
   private productService: ProductService
@@ -99,6 +100,14 @@ export default class ProductController {
           error: error.message,
         })
       }
+
+      // Automáticamente crear la donación para que las ONGs lo vean instantáneamente
+      const donationService = new DonationService()
+      await donationService.createDonation(accessToken, userId, {
+        product_id: product.id,
+        quantity: product.unidades,
+        status: 'available'
+      })
 
       return response.created({
         success: true,

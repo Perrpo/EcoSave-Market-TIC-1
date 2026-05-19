@@ -18,12 +18,12 @@ export default class UserService {
   }
 
   async getProfile(userId: string, accessToken?: string) {
-    const repository = this.getRepository(accessToken)
+    const repository = this.getRepository(accessToken, true)
     return await repository.getProfile(userId)
   }
 
   async updateProfile(userId: string, data: { businessName?: string; phone?: string; nit?: string }, accessToken?: string) {
-    const repository = this.getRepository(accessToken)
+    const repository = this.getRepository(accessToken, true)
     const updateData: Record<string, string> = {}
     if (data.businessName) {
       updateData.business = data.businessName

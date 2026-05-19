@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useMemo, useCallback, useRef } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useNotifications } from '../context/NotificationContext'
 import apiService from '../services/api'
+import { usePolling } from '../hooks/usePolling'
 import './Dashboard.css'
 // texture-card imports retained for other usage if any
 import { TextureButton } from '../components/ui/texture-button'
@@ -80,18 +81,15 @@ const Dashboard: React.FC = () => {
     vencimiento: ''
   });
 
-  useEffect(() => {
-    if (auth.user?.id) {
-      loadProducts();
-      loadDonations();
-    }
-  }, [auth.user?.id]);
+  // Track whether the initial load has completed to avoid flickering on poll
+  const hasLoadedProducts = useRef(false);
+  const hasLoadedDonations = useRef(false);
 
-  const loadProducts = async () => {
+  const loadProducts = useCallback(async () => {
     if (!auth.user?.id) return;
     
     try {
-      setIsLoading(true);
+      if (!hasLoadedProducts.current) setIsLoading(true);
       const response = await apiService.getProducts();
       
       if (response.success && response.data) {
@@ -100,14 +98,16 @@ const Dashboard: React.FC = () => {
         setProducts([]);
       }
     } finally {
+      hasLoadedProducts.current = true;
       setIsLoading(false);
     }
-  };
+  }, [auth.user?.id]);
 
-  const loadDonations = async () => {
+  const loadDonations = useCallback(async () => {
     if (!auth.user?.id) return;
     
     try {
+      if (!hasLoadedDonations.current) setIsLoading(true);
       const response = await apiService.getDonations();
       
       if (response.success && response.data) {
@@ -118,8 +118,16 @@ const Dashboard: React.FC = () => {
     } catch (error) {
       console.error('Error loading donations:', error);
       setDonations([]);
+    } finally {
+      hasLoadedDonations.current = true;
+      setIsLoading(false);
     }
-  };
+  }, [auth.user?.id]);
+
+  // Polling cada 5 s para que los cambios de otros usuarios (ONG solicitando)
+  // aparezcan en tiempo real sin necesidad de recargar la página.
+  usePolling(loadProducts, 5000, !!auth.user?.id);
+  usePolling(loadDonations, 5000, !!auth.user?.id);
 
   const handleAddProduct = async () => {
     if (!newProduct.nombre || !newProduct.categoria || !newProduct.vencimiento) {
@@ -214,6 +222,9 @@ const Dashboard: React.FC = () => {
 
   // Estadísticas dinámicas
   const totalProducts = useMemo(() => products.length, [products]);
+
+  // Active products: exclude 'Donado' from the main table (they appear in donation history)
+  const activeProducts = useMemo(() => products.filter(p => p.estado !== 'Donado'), [products]);
 
   const urgentProducts = useMemo(() => {
     return products.filter(
@@ -511,12 +522,12 @@ const Dashboard: React.FC = () => {
           <div className="table-wrap">
             {isLoading ? (
               <div className="loading-message">Cargando productos...</div>
-            ) : products.length === 0 ? (
+            ) : activeProducts.length === 0 ? (
               <div className="no-products">
                 <PackageIcon />
-                <p className="empty-title">No hay productos registrados</p>
-                <p className="empty-sub">Agrega productos para comenzar a gestionar tu inventario</p>
-                <TextureButton variant="ecosavePrimary" size="lg" onClick={() => setShowAddProduct(true)}>Agregar primer producto</TextureButton>
+                <p className="empty-title">No hay productos activos</p>
+                <p className="empty-sub">Todos los productos fueron donados o agrega nuevos</p>
+                <TextureButton variant="ecosavePrimary" size="lg" onClick={() => setShowAddProduct(true)}>Agregar producto</TextureButton>
               </div>
             ) : (
               <table className="products-table">
@@ -531,7 +542,7 @@ const Dashboard: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {products.map((p) => (
+                  {activeProducts.map((p) => (
                     <tr key={p.id}>
                       <td>{p.nombre}</td>
                       <td>{p.categoria}</td>
@@ -571,7 +582,7 @@ const Dashboard: React.FC = () => {
               <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--muted)' }}>Productos que requieren acción</p>
             </div>
             <div style={{ borderTop: '1px solid var(--stroke)', paddingTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {products.filter(p => getExpiryClass(p.vencimiento) !== 'green').map(p => (
+              {activeProducts.filter(p => getExpiryClass(p.vencimiento) !== 'green').map(p => (
                 <div key={p.id} style={{
                   display: 'flex',
                   justifyContent: 'space-between',
@@ -588,7 +599,7 @@ const Dashboard: React.FC = () => {
                   <span className={`tag ${getExpiryClass(p.vencimiento)}`}>{new Date(p.vencimiento).toLocaleDateString()}</span>
                 </div>
               ))}
-              {products.filter(p => getExpiryClass(p.vencimiento) !== 'green').length === 0 && (
+              {activeProducts.filter(p => getExpiryClass(p.vencimiento) !== 'green').length === 0 && (
                 <div style={{ fontSize: '0.875rem', color: 'var(--muted)', fontStyle: 'italic' }}>Sin alertas por ahora ✅</div>
               )}
             </div>
@@ -786,18 +797,37 @@ const Dashboard: React.FC = () => {
               {donations.length === 0 ? (
                 <p>No hay donaciones registradas</p>
               ) : (
-                donations.map((donation) => (
+                donations.map((donation) => {
+                  const statusLabel =
+                    donation.status === 'completed' ? '✅ Completada' :
+                    donation.status === 'requested' ? '⏳ Solicitada' :
+                    '🟢 Disponible';
+                  const statusColor =
+                    donation.status === 'completed' ? '#2D5A27' :
+                    donation.status === 'requested' ? '#F58220' :
+                    '#00A99D';
+                  return (
                   <div key={donation.id} className="donation-item">
                     <div className="donation-info">
                       <h4>{donation.product_name}</h4>
                       <p>Cantidad: {donation.quantity} unidades</p>
+                      <p>Categoría: {donation.product_category || 'N/A'}</p>
                       <p>Fecha: {new Date(donation.created_at).toLocaleDateString()}</p>
-                      <p>ONG: {donation.ong_id || 'Pendiente'}</p>
+                      {donation.ong_id && <p>ONG asignada: Sí</p>}
                     </div>
                     <div className="donation-status" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
-                      <span className={`badge ${donation.status}`}>
-                        {donation.status === 'completed' ? 'Completada' : 'Pendiente'}
+                      <span style={{
+                        background: statusColor + '18',
+                        color: statusColor,
+                        padding: '4px 12px',
+                        borderRadius: '999px',
+                        fontWeight: 700,
+                        fontSize: '0.8rem',
+                        border: `1px solid ${statusColor}30`,
+                      }}>
+                        {statusLabel}
                       </span>
+                      {donation.status === 'completed' && (
                       <button 
                         className="action-btn" 
                         style={{ background: '#00A99D', color: '#fff', border: 'none', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}
@@ -811,7 +841,7 @@ const Dashboard: React.FC = () => {
                             const url = window.URL.createObjectURL(blob);
                             const a = document.createElement('a');
                             a.href = url;
-                            a.download = `certificado-${donation.id.slice(0,8)}.pdf`;
+                            a.download = `certificado-${String(donation.id).slice(0,8)}.pdf`;
                             document.body.appendChild(a);
                             a.click();
                             window.URL.revokeObjectURL(url);
@@ -824,9 +854,11 @@ const Dashboard: React.FC = () => {
                       >
                         Generar PDF
                       </button>
+                      )}
                     </div>
                   </div>
-                ))
+                  );
+                })
               )}
             </div>
             <div className="modal-actions">

@@ -45,15 +45,27 @@ const AppContent: React.FC = () => {
     }
   };
 
+  // Guard component that redirects users to their correct dashboard
+  const RoleGuard: React.FC<{ allowedRole: string; children: React.ReactNode }> = ({ allowedRole, children }) => {
+    if (
+      (allowedRole === 'supermarket' && (user.role === 'ong' || user.role === 'admin')) ||
+      (allowedRole === 'ong' && user.role !== 'ong') ||
+      (allowedRole === 'admin' && user.role !== 'admin')
+    ) {
+      return <Navigate to={getDefaultRoute()} replace />;
+    }
+    return <>{children}</>;
+  };
+
   return (
     <div className="layout">
       <Sidebar />
       <main className="main-content">
         <Routes>
           <Route path="/" element={<Navigate to={getDefaultRoute()} replace />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/dashboard-ong" element={<DashboardONG />} />
-          <Route path="/dashboard-admin" element={<DashboardAdmin />} />
+          <Route path="/dashboard" element={<RoleGuard allowedRole="supermarket"><Dashboard /></RoleGuard>} />
+          <Route path="/dashboard-ong" element={<RoleGuard allowedRole="ong"><DashboardONG /></RoleGuard>} />
+          <Route path="/dashboard-admin" element={<RoleGuard allowedRole="admin"><DashboardAdmin /></RoleGuard>} />
           <Route path="/map" element={<Map />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/integracion-inventario" element={<IntegracionInventario />} />

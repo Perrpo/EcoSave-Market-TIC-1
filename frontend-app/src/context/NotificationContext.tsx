@@ -44,12 +44,22 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     }
   };
 
-  // Poll for notifications every 30 seconds
+  // Poll for notifications every 5 seconds for near real-time updates
   useEffect(() => {
     if (isAuthenticated) {
       fetchNotifications();
-      const intervalId = setInterval(fetchNotifications, 30000);
-      return () => clearInterval(intervalId);
+      const intervalId = setInterval(fetchNotifications, 5000);
+
+      // Recargar cuando el usuario vuelve a la pestaña
+      const onVisible = () => {
+        if (document.visibilityState === 'visible') fetchNotifications();
+      };
+      document.addEventListener('visibilitychange', onVisible);
+
+      return () => {
+        clearInterval(intervalId);
+        document.removeEventListener('visibilitychange', onVisible);
+      };
     } else {
       setNotifications([]);
       setUnreadCount(0);

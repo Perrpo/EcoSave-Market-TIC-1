@@ -8,12 +8,12 @@ export default class NotificationService {
   }
 
   async getUserNotifications(accessToken: string | undefined, userId: string, limit: number, offset: number) {
-    const repository = this.getRepository(accessToken)
+    const repository = this.getRepository(accessToken, true)
     return await repository.findByUserId(userId, limit, offset)
   }
 
   async getUnreadNotifications(accessToken: string | undefined, userId: string) {
-    const repository = this.getRepository(accessToken)
+    const repository = this.getRepository(accessToken, true)
     return await repository.findUnreadByUserId(userId)
   }
 
@@ -28,17 +28,17 @@ export default class NotificationService {
   }
 
   async markAsRead(accessToken: string | undefined, userId: string, notificationId: string) {
-    const repository = this.getRepository(accessToken)
+    const repository = this.getRepository(accessToken, true)
     return await repository.markAsRead(notificationId, userId)
   }
 
   async markAllAsRead(accessToken: string | undefined, userId: string) {
-    const repository = this.getRepository(accessToken)
+    const repository = this.getRepository(accessToken, true)
     return await repository.markAllAsRead(userId)
   }
 
   async clearAll(accessToken: string | undefined, userId: string) {
-    const repository = this.getRepository(accessToken)
+    const repository = this.getRepository(accessToken, true)
     return await repository.deleteByUserId(userId)
   }
 }

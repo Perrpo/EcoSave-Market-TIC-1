@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 import apiService from '../services/api';
+import { usePolling } from '../hooks/usePolling';
 import './Dashboard.css';
 import './DashboardONG.css';
 import { MinimalCard, MinimalCardContent, MinimalCardFooter, MinimalCardTitle } from '../components/ui/minimal-card';
@@ -92,16 +93,13 @@ const DashboardONG: React.FC = () => {
     }
   }, [selectedDonation]);
 
-  useEffect(() => {
-    if (auth.user?.id) {
-      loadAvailableDonations();
-      loadRequestHistory();
-    }
-  }, [auth.user?.id]);
+  // Track initial load to avoid flickering on subsequent polls
+  const hasLoadedAvailable = useRef(false);
+  const hasLoadedHistory = useRef(false);
 
-  const loadAvailableDonations = async () => {
+  const loadAvailableDonations = useCallback(async () => {
     try {
-      setIsLoading(true);
+      if (!hasLoadedAvailable.current) setIsLoading(true);
       const response = await apiService.getAvailableDonations();
       
       if (response.success && response.data) {
@@ -113,14 +111,16 @@ const DashboardONG: React.FC = () => {
       console.error('Error loading available donations:', error);
       setAvailableDonations([]);
     } finally {
+      hasLoadedAvailable.current = true;
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const loadRequestHistory = async () => {
+  const loadRequestHistory = useCallback(async () => {
     if (!auth.user?.id) return;
     
     try {
+      if (!hasLoadedHistory.current) setIsLoading(true);
       const response = await apiService.getDonations({
         ong_id: auth.user.id,
       });
@@ -133,8 +133,15 @@ const DashboardONG: React.FC = () => {
     } catch (error) {
       console.error('Error loading request history:', error);
       setRequestHistory([]);
+    } finally {
+      hasLoadedHistory.current = true;
+      setIsLoading(false);
     }
-  };
+  }, [auth.user?.id]);
+
+  // Polling cada 5 s
+  usePolling(loadAvailableDonations, 5000, !!auth.user?.id);
+  usePolling(loadRequestHistory, 5000, !!auth.user?.id);
 
   const handleRequestDonation = async (donation: AvailableDonation) => {
     if (!auth.user?.id) {

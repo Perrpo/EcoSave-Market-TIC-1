@@ -54,9 +54,14 @@ router.group(() => {
     router.post('/:id/confirm', '#controllers/http/donation_controller.confirm')
   }).prefix('donations')
 
-  // Locations (ONGs)
+  // Locations
+  // IMPORTANTE: /mine (estática) debe ir ANTES que /:id (dinámica)
   router.group(() => {
     router.get('/', '#controllers/http/location_controller.index')
+    router.get('/mine', '#controllers/http/location_controller.mine')
+    router.post('/', '#controllers/http/location_controller.store')
+    router.put('/:id', '#controllers/http/location_controller.update')
+    router.delete('/:id', '#controllers/http/location_controller.destroy')
   }).prefix('locations')
   
   // Notifications

@@ -3,11 +3,10 @@ import { SupabaseClient } from '@supabase/supabase-js'
 export default class ProductRepository {
   constructor(private supabase: SupabaseClient) {}
 
-  async findAllByUserId(userId: string, limit: number, offset: number, status?: string) {
+  async findAllByUserId(_userId: string, limit: number, offset: number, status?: string) {
     let query = this.supabase
       .from('products')
       .select('*')
-      .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
 

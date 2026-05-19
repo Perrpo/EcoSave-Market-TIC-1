@@ -1,10 +1,31 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { TextureButton } from './ui/texture-button'
 import './AuthForm.css'
 
 type Role = 'supermarket' | 'ong' | 'admin'
+
+// Password requirement checks
+const getPasswordChecks = (pwd: string) => [
+  { label: 'Mínimo 8 caracteres', met: pwd.length >= 8 },
+  { label: 'Al menos una mayúscula (A-Z)', met: /[A-Z]/.test(pwd) },
+  { label: 'Al menos una minúscula (a-z)', met: /[a-z]/.test(pwd) },
+  { label: 'Al menos un número (0-9)', met: /[0-9]/.test(pwd) },
+  { label: 'Al menos un carácter especial (@#$*!)', met: /[^A-Za-z0-9]/.test(pwd) },
+]
+
+// Password strength calculation
+const calculateStrength = (pwd: string): { score: number; label: string; color: string } => {
+  if (!pwd) return { score: 0, label: '', color: '' }
+  const checks = getPasswordChecks(pwd)
+  const passed = checks.filter(c => c.met).length
+
+  if (passed <= 2) return { score: 1, label: 'Débil', color: '#ef4444' }
+  if (passed <= 3) return { score: 2, label: 'Media', color: '#f59e0b' }
+  if (passed <= 4) return { score: 2, label: 'Media', color: '#f59e0b' }
+  return { score: 3, label: 'Fuerte', color: '#22c55e' }
+}
 
 const Logo = ({ size = 28 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden="true" className="logo-mark">
@@ -37,12 +58,19 @@ const AuthForm: React.FC = () => {
   const [role, setRole] = useState<Role>('supermarket')
   const [loginRole, setLoginRole] = useState<Role>('supermarket')
   const [password, setPassword] = useState('')
+  const [pwdStrength, setPwdStrength] = useState({ score: 0, label: '', color: '' })
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
   const navigate = useNavigate()
   const auth = useAuth()
+
+  useEffect(() => {
+    if (tab === 'register') {
+      setPwdStrength(calculateStrength(password))
+    }
+  }, [password, tab])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -81,6 +109,10 @@ const AuthForm: React.FC = () => {
       }
       if (!/[0-9]/.test(password)) {
         setError('La contraseña debe tener al menos un número.')
+        return
+      }
+      if (!/[^A-Za-z0-9]/.test(password)) {
+        setError('La contraseña debe tener al menos un caracter especial (ej. @, #, $, *, etc).')
         return
       }
     }
@@ -291,7 +323,7 @@ const AuthForm: React.FC = () => {
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Mínimo 8 caracteres"
+                placeholder={tab === 'register' ? "Mínimo 8 caracteres" : "Contraseña"}
                 required
                 autoComplete={tab === 'login' ? 'current-password' : 'new-password'}
               />
@@ -299,10 +331,47 @@ const AuthForm: React.FC = () => {
                 type="button"
                 className="ghost-btn"
                 onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
-                {showPassword ? 'Ocultar' : 'Mostrar'}
+                {showPassword ? (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                )}
               </button>
             </div>
+            {tab === 'register' && password && (
+              <>
+                {/* ── Strength Bars ── */}
+                <div className="pwd-meter-container">
+                  <div className="pwd-bars">
+                    <div className="pwd-bar" style={{ background: pwdStrength.score >= 1 ? pwdStrength.color : '#e5e7eb' }}></div>
+                    <div className="pwd-bar" style={{ background: pwdStrength.score >= 2 ? pwdStrength.color : '#e5e7eb' }}></div>
+                    <div className="pwd-bar" style={{ background: pwdStrength.score >= 3 ? pwdStrength.color : '#e5e7eb' }}></div>
+                  </div>
+                  <div className="pwd-label" style={{ color: pwdStrength.color }}>
+                    {pwdStrength.label}
+                  </div>
+                </div>
+
+                {/* ── Requirements Checklist ── */}
+                <ul className="pwd-checklist">
+                  {getPasswordChecks(password).map((check, i) => (
+                    <li key={i} className={`pwd-check-item ${check.met ? 'met' : 'unmet'}`}>
+                      <span className="pwd-check-icon">
+                        {check.met ? (
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        ) : (
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        )}
+                      </span>
+                      <span>{check.label}</span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
           </label>
 
           {error && <div className="alert error">{error}</div>}

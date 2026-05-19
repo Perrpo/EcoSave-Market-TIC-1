@@ -27,7 +27,7 @@ export default class AuthRepository {
   async getProfile(id: string) {
     return await this.supabase
       .from('profiles')
-      .select('roles, nit, phone, business')
+      .select('roles, nit, phone, business, nombre')
       .eq('id', id)
       .maybeSingle()
   }

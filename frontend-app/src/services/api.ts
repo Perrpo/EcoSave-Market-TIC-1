@@ -97,6 +97,44 @@ class ApiService {
     return this.request(`/locations?${queryParams}`);
   }
 
+  async getMyLocations() {
+    return this.request('/locations/mine');
+  }
+
+  async createLocation(locationData: {
+    nombre: string;
+    tipo: string;
+    direccion: string;
+    especialidades?: string[];
+    lat?: number;
+    lng?: number;
+  }) {
+    return this.request('/locations', {
+      method: 'POST',
+      body: JSON.stringify(locationData),
+    });
+  }
+
+  async updateLocation(id: number, locationData: {
+    nombre?: string;
+    tipo?: string;
+    direccion?: string;
+    especialidades?: string[];
+    lat?: number;
+    lng?: number;
+  }) {
+    return this.request(`/locations/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(locationData),
+    });
+  }
+
+  async deleteLocation(id: number) {
+    return this.request(`/locations/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   // Donaciones
   async getDonations(params?: {
     ong_id?: string;

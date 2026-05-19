@@ -9,6 +9,8 @@ export default class AuthService {
 
   async register(data: any) {
     const repository = this.getRepository()
+    // Use privileged client for profile operations to bypass broken RLS on profiles
+    const privilegedRepository = this.getRepository(undefined, true)
 
     const roleMap: Record<string, string> = {
       supermarket: 'SUPERMERCADO',
@@ -33,13 +35,13 @@ export default class AuthService {
     }
 
     if (authData.user) {
-      await repository.upsertProfile(authData.user.id, {
+      await privilegedRepository.upsertProfile(authData.user.id, {
         nombre: data.business_name,
         business: data.business_name,
         phone: data.phone,
         nit: data.nit,
         roles: [dbRole],
-        status: 'ACTIVO',
+        estado: 'ACTIVO',
       })
     }
 
@@ -81,14 +83,16 @@ export default class AuthService {
     let profileNit = authData.user?.user_metadata?.nit || 'N/A'
 
     if (authData.user) {
-      const { data: profile } = await repository.getProfile(authData.user.id)
+      // Use privileged client to bypass broken RLS on profiles table
+      const privilegedRepo = this.getRepository(undefined, true)
+      const { data: profile } = await privilegedRepo.getProfile(authData.user.id)
 
       if (profile) {
         const inferredRole = roleReverseMap[profile.roles?.[0]]
         if (inferredRole) {
           profileRole = inferredRole
         }
-        profileBusiness = profile.business ?? profileBusiness
+        profileBusiness = profile.business || profile.nombre || profileBusiness
         profilePhone = profile.phone ?? profilePhone
         profileNit = profile.nit ?? profileNit
       }

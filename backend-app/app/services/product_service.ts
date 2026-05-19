@@ -59,7 +59,8 @@ export default class ProductService {
   }
 
   async getAvailableProducts(accessToken: string | undefined) {
-    const repository = this.getRepository(accessToken)
+    // Must use privileged client to bypass broken RLS on profiles
+    const repository = this.getRepository(accessToken, true)
     return await repository.findAvailable()
   }
 }

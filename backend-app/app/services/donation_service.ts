@@ -13,9 +13,33 @@ export default class DonationService {
     return new ProductRepository(client)
   }
 
+  private async mapSupermarkets(donations: any[]) {
+    if (!donations || donations.length === 0) return donations;
+    const userIds = [...new Set(donations.map(d => d.user_id).filter(Boolean))];
+    if (userIds.length === 0) return donations;
+
+    const client = supabaseService.getClient(undefined, true);
+    const { data: profiles } = await client.from('profiles').select('id, nombre, business, phone').in('id', userIds);
+    if (!profiles) return donations;
+
+    const profileMap = profiles.reduce((acc: any, p: any) => {
+      acc[p.id] = { business_name: p.business || p.nombre, phone: p.phone };
+      return acc;
+    }, {});
+
+    return donations.map(d => ({
+      ...d,
+      supermarkets: profileMap[d.user_id] || null
+    }));
+  }
+
   async getDonations(accessToken: string | undefined, limit: number, offset: number, ongId?: string, userId?: string, status?: string) {
     const repository = this.getRepository(accessToken, true)
-    return await repository.findAll(limit, offset, ongId, userId, status)
+    const result = await repository.findAll(limit, offset, ongId, userId, status)
+    if (result.data) {
+      result.data = await this.mapSupermarkets(result.data)
+    }
+    return result
   }
 
   async createDonation(accessToken: string | undefined, userId: string, donationData: any) {
@@ -117,11 +141,11 @@ export default class DonationService {
       
       const { data: ongProfile } = await supabaseService.getClient(undefined, true)
         .from('profiles')
-        .select('business_name')
+        .select('business, nombre')
         .eq('id', ongId)
         .single()
 
-      const ongName = ongProfile?.business_name || 'Una ONG'
+      const ongName = ongProfile?.business || ongProfile?.nombre || 'Una ONG'
 
       await notificationService.createNotification({
         user_id: donation.user_id, // El supermercado
@@ -161,11 +185,11 @@ export default class DonationService {
       
       const { data: ongProfile } = await supabaseService.getClient(undefined, true)
         .from('profiles')
-        .select('business_name')
+        .select('business, nombre')
         .eq('id', donation.ong_id)
         .single()
 
-      const ongName = ongProfile?.business_name || 'La ONG'
+      const ongName = ongProfile?.business || ongProfile?.nombre || 'La ONG'
 
       await notificationService.createNotification({
         user_id: donation.user_id, // El supermercado
@@ -182,7 +206,11 @@ export default class DonationService {
   async getAvailableDonations(_accessToken?: string) {
     // Usamos cliente privilegiado para evitar RLS recursivas en policies de profiles
     const repository = this.getRepository(undefined, true)
-    return await repository.findAvailable()
+    const result = await repository.findAvailable()
+    if (result.data) {
+      result.data = await this.mapSupermarkets(result.data)
+    }
+    return result
   }
 
   async getDonationStats(accessToken: string | undefined, ongId?: string, userId?: string) {
