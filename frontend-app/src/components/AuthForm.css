@@ -1,157 +1,158 @@
 /* ═══════════════════════════════════════════════════════
-   AuthForm – Guía de Identidad Visual EcoSave Market
+   AuthForm — Rediseño visual completo
+   Misma paleta, misma funcionalidad.
    ═══════════════════════════════════════════════════════ */
-
-:root {
-  /* 1. COLORES PRINCIPALES */
-  --primary: #2D5A27;          /* Verde Ecológico */
-  --primary-strong: #1F3E1B;   /* Verde oscuro hover */
-  --accent: #F58220;           /* Naranja Vibrante */
-
-  /* 2. COLORES SECUNDARIOS */
-  --cyan: #00A99D;             /* Cian Tecnológico */
-  --lime: #8DC63F;             /* Verde Lima */
-
-  /* 3. COLORES DE INTERFAZ */
-  --bg: #F8F9FA;               /* Blanco Humo */
-  --ink: #333333;              /* Gris Carbón */
-  --muted: #6c757d;
-  --card: #ffffff;
-  --stroke: #E9ECEF;           /* Gris Plata */
-
-  /* Sombras con tono verde marca */
-  --shadow: 0 20px 60px rgba(45, 90, 39, 0.10);
-  --shadow-hover: 0 10px 30px rgba(45, 90, 39, 0.18);
-  --radius-lg: 20px;
-  --radius-md: 12px;
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-7: 32px;
-  --space-8: 40px;
-}
 
 /* ── Layout Shell ── */
 .auth-shell {
   display: grid;
-  grid-template-columns: 1.05fr 0.95fr;
+  grid-template-columns: 1fr 1fr;
   min-height: 100vh;
-  background: var(--bg);         /* Blanco Humo */
-  color: var(--ink);             /* Gris Carbón */
+  background: var(--bg);
 }
 
-/* ── Hero (lado izquierdo) ── */
+/* ── Hero (izquierda) ── */
 .auth-hero {
   position: relative;
-  padding: clamp(24px, 3vw, 48px);
-  background:
-    radial-gradient(circle at 15% 20%, rgba(45, 90, 39, 0.12), transparent 50%),
-    radial-gradient(circle at 85% 10%, rgba(245, 130, 32, 0.10), transparent 45%),
-    radial-gradient(circle at 60% 80%, rgba(0, 169, 157, 0.06), transparent 40%),
-    linear-gradient(145deg, #eef5ed 0%, #F8F9FA 100%);
+  padding: clamp(var(--space-8), 5vw, var(--space-16));
+  background: linear-gradient(160deg, #eef6ec 0%, #f6faf5 50%, #f0f8f7 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   overflow: hidden;
+}
+
+/* Fondo decorativo sutil */
+.auth-hero::before {
+  content: '';
+  position: absolute;
+  top: -120px;
+  right: -80px;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(45,90,39,0.08) 0%, transparent 70%);
+  pointer-events: none;
 }
 
 .auth-hero::after {
   content: '';
   position: absolute;
-  inset: 12% -10% -10% 55%;
-  background: linear-gradient(135deg, rgba(0, 169, 157, 0.06), rgba(141, 198, 63, 0));
-  border-radius: 50%;
+  bottom: -80px;
+  left: 20%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(0,169,157,0.06) 0%, transparent 70%);
   pointer-events: none;
 }
 
 /* ── Hero Typography ── */
 .auth-hero h1 {
-  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
-  font-size: clamp(30px, 4vw, 42px);
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
   line-height: 1.1;
-  margin: var(--space-4) 0 var(--space-3);
-  color: var(--primary);         /* Verde Ecológico para títulos */
+  margin: var(--space-5) 0 var(--space-4);
+  color: var(--primary);
+  letter-spacing: -0.5px;
 }
 
 .hero-copy {
-  max-width: 520px;
+  max-width: var(--prose-width);
   color: var(--muted);
-  font-size: 15px;
-  line-height: 1.6;
+  font-size: var(--text-base);
+  line-height: 1.65;
 }
 
 .eyebrow {
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   font-weight: 700;
-  font-size: 12px;
-  color: var(--primary);         /* Verde Ecológico */
+  font-size: var(--text-xs);
+  color: var(--primary);
   margin: 0;
 }
 
-/* ── Hero Layout Sections ── */
 .hero-top {
   position: relative;
   z-index: 1;
   display: grid;
-  gap: var(--space-4);
+  gap: var(--space-3);
   align-items: start;
 }
 
 .hero-bottom {
   position: relative;
   z-index: 1;
-  margin-top: var(--space-8);
 }
 
 /* ── Impact Card ── */
 .impact-card {
-  background: var(--card);       /* Blanco */
-  border: 1px solid var(--stroke);
-  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: var(--border-default);
+  border-radius: var(--radius-xl);
   padding: var(--space-6);
-  box-shadow: var(--shadow);
-  max-width: 560px;
-  transition: transform 200ms ease, box-shadow 200ms ease;
+  box-shadow: var(--shadow-md);
+  max-width: 520px;
+  transition: transform 220ms ease, box-shadow 220ms ease;
 }
 
 .impact-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-hover);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
 }
 
 .impact-title {
+  font-family: var(--font-display);
   font-weight: 700;
+  font-size: var(--text-sm);
   margin: 0 0 var(--space-4);
-  color: var(--ink);             /* Gris Carbón */
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.impact-title::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: var(--primary);
+  border-radius: 50%;
 }
 
 .impact-metrics {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--space-4);
+  text-align: center;
 }
 
 .impact-number {
   display: block;
+  font-family: var(--font-display);
   font-weight: 800;
-  font-size: 22px;
-  color: var(--primary);         /* Verde Ecológico */
+  font-size: var(--text-xl);
+  color: var(--primary);
+  line-height: 1;
 }
 
 .impact-label {
+  display: block;
   color: var(--muted);
-  font-size: 13px;
+  font-size: var(--text-xs);
+  margin-top: var(--space-1);
+  font-weight: 500;
 }
 
-/* ── Auth Panel (lado derecho) ── */
+/* ── Auth Panel (derecha) ── */
 .auth-panel {
-  background: var(--card);       /* Blanco */
-  border-left: 1px solid var(--stroke);
-  padding: clamp(24px, 4vw, 48px);
+  background: var(--surface);
+  border-left: var(--border-default);
+  padding: clamp(var(--space-8), 5vw, var(--space-16));
   display: flex;
   flex-direction: column;
   gap: var(--space-6);
+  justify-content: center;
 }
 
 /* ── Panel Header ── */
@@ -163,30 +164,33 @@
 }
 
 .panel-header h2 {
-  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
-  font-size: clamp(22px, 3vw, 28px);
-  margin: 4px 0 0;
-  color: var(--ink);             /* Gris Carbón */
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  margin: 2px 0 0;
+  color: var(--ink);
+  letter-spacing: -0.3px;
 }
 
-/* ── Tab Toggle ── */
 .tab-toggle {
-  border: 1.5px solid var(--stroke);
+  border: var(--border-default);
   background: transparent;
-  color: var(--ink);
-  padding: 10px 14px;
+  color: var(--primary);
+  padding: var(--space-2) var(--space-4);
   border-radius: 999px;
   cursor: pointer;
   font-weight: 600;
-  font-size: 13px;
+  font-size: var(--text-xs);
   transition: all 180ms ease;
+  min-height: 36px;
+  border-color: var(--primary);
 }
 
 .tab-toggle:hover {
-  border-color: var(--primary);
-  color: var(--primary);
-  background: rgba(45, 90, 39, 0.04);
+  background: var(--primary);
+  color: #fff;
 }
+.tab-toggle:active { opacity: 0.8; }
 
 /* ── Form ── */
 .auth-form {
@@ -194,34 +198,42 @@
   gap: var(--space-4);
 }
 
-/* ── Form Fields ── */
+/* ── Fields ── */
 .field {
   display: grid;
-  gap: 6px;
-  font-size: 14px;
-  color: var(--muted);
+  gap: var(--space-1);
 }
 
-.field input {
+.field span {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--ink-2);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.field input,
+.field select {
   width: 100%;
-  padding: 12px 14px;
+  padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-md);
-  border: 1.5px solid var(--stroke);
-  background: var(--bg);         /* Blanco Humo */
+  border: var(--border-default);
+  background: var(--bg);
   color: var(--ink);
-  font-size: 14px;
-  transition: border 150ms ease, box-shadow 150ms ease;
+  font-size: var(--text-base);
+  font-family: var(--font-body);
+  transition: border-color 150ms ease, box-shadow 150ms ease, background 150ms ease;
 }
 
-.field input:focus {
-  border-color: var(--primary);  /* Verde Ecológico */
+.field input:focus,
+.field select:focus {
+  border-color: var(--primary);
+  background: var(--surface);
   box-shadow: 0 0 0 3px rgba(45, 90, 39, 0.12);
   outline: none;
 }
 
-.field input::placeholder {
-  color: #adb5bd;
-}
+.field input::placeholder { color: var(--muted-light); }
 
 /* ── Password Field ── */
 .password-field {
@@ -231,18 +243,18 @@
   align-items: center;
 }
 
-/* Password Strength Meter */
+/* Strength Meter */
 .pwd-meter-container {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  margin-top: 6px;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
 }
 
 .pwd-bars {
   display: flex;
-  gap: 6px;
-  height: 6px;
+  gap: var(--space-1);
+  height: 4px;
 }
 
 .pwd-bar {
@@ -252,40 +264,33 @@
 }
 
 .pwd-label {
-  font-size: 0.8rem;
+  font-size: var(--text-xs);
   font-weight: 800;
-  text-align: left;
-  margin-top: 2px;
   letter-spacing: 0.02em;
   transition: color 0.35s ease;
 }
 
-/* Password Requirements Checklist */
+/* Checklist */
 .pwd-checklist {
   list-style: none;
   padding: 0;
-  margin: 6px 0 0;
+  margin: var(--space-2) 0 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-1);
 }
 
 .pwd-check-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.8rem;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
   font-weight: 500;
-  transition: opacity 0.25s ease, color 0.25s ease;
+  transition: color 0.25s ease;
 }
 
-.pwd-check-item.met {
-  color: #22c55e;
-}
-
-.pwd-check-item.unmet {
-  color: #9ca3af;
-}
+.pwd-check-item.met   { color: #22c55e; }
+.pwd-check-item.unmet { color: var(--muted-light); }
 
 .pwd-check-icon {
   display: flex;
@@ -295,129 +300,127 @@
   height: 18px;
   border-radius: 50%;
   flex-shrink: 0;
-  transition: background 0.25s ease;
 }
 
-.pwd-check-item.met .pwd-check-icon {
-  background: rgba(34, 197, 94, 0.1);
-}
+.pwd-check-item.met   .pwd-check-icon { background: rgba(34, 197, 94, 0.12); }
+.pwd-check-item.unmet .pwd-check-icon { background: rgba(209, 213, 219, 0.2); }
 
-.pwd-check-item.unmet .pwd-check-icon {
-  background: rgba(209, 213, 219, 0.15);
-}
-
-/* ── Ghost Button (Mostrar/Ocultar) ── */
+/* ── Ghost Btn (mostrar/ocultar contraseña) ── */
 .ghost-btn {
-  border: 1.5px solid var(--stroke);
-  background: var(--card);
-  color: var(--ink);
-  padding: 10px 12px;
+  border: var(--border-default);
+  background: var(--surface);
+  color: var(--muted);
+  padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-md);
   cursor: pointer;
-  font-weight: 600;
-  font-size: 13px;
   transition: border-color 150ms ease, color 150ms ease;
+  min-width: 44px;
+  min-height: 44px;
+  display: grid;
+  place-items: center;
 }
 
-.ghost-btn:hover {
-  border-color: var(--cyan);     /* Cian Tecnológico */
-  color: var(--cyan);
-}
+.ghost-btn:hover  { border-color: var(--cyan); color: var(--cyan); }
+.ghost-btn:active { opacity: 0.75; }
 
-/* ── Primary Button (CTA) ── */
-.btn-primary {
-  background: var(--primary);    /* Verde Ecológico - Botón de Éxito/Confirmación */
+/* ── Primary CTA ── */
+.auth-form .btn-primary {
+  background: var(--primary);
   color: #fff;
   border: none;
   border-radius: var(--radius-md);
-  padding: 14px;
+  padding: var(--space-4);
   font-weight: 700;
-  font-size: 15px;
+  font-size: var(--text-base);
   cursor: pointer;
-  transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
+  transition: background 140ms ease, transform 120ms ease, box-shadow 120ms ease;
+  min-height: 48px;
+  font-family: var(--font-display);
+  letter-spacing: 0.01em;
 }
 
-.btn-primary:hover {
-  transform: translateY(-2px);
+.auth-form .btn-primary:hover {
   background: var(--primary-strong);
-  box-shadow: 0 10px 25px rgba(45, 90, 39, 0.22);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
-.btn-primary:active {
-  transform: translateY(0);
-}
-
-.btn-primary:disabled {
-  opacity: 0.65;
-  cursor: not-allowed;
-  transform: none;
-}
+.auth-form .btn-primary:active  { transform: translateY(0); }
+.auth-form .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
 /* ── Role Cards ── */
 .role-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: var(--space-3);
 }
 
 .role-card {
-  border: 1.5px solid var(--stroke);
-  background: var(--card);
+  border: 2px solid var(--stroke);
+  background: var(--surface);
   border-radius: var(--radius-md);
   padding: var(--space-4);
   text-align: left;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: var(--space-3);
-  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
   cursor: pointer;
-  transition: border 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+  transition: border-color 150ms ease, box-shadow 150ms ease, background 150ms ease, transform 150ms ease;
+  min-height: 44px;
 }
 
 .role-card:hover {
+  border-color: var(--cyan);
   transform: translateY(-2px);
-  border-color: var(--cyan);     /* Cian Tecnológico - interacción */
-  box-shadow: 0 4px 14px rgba(0, 169, 157, 0.12);
+  box-shadow: var(--shadow-sm);
 }
 
+.role-card:active { transform: translateY(0); }
+
 .role-card.is-active {
-  border-color: var(--primary);  /* Verde Ecológico - selección activa */
-  box-shadow: 0 10px 30px rgba(45, 90, 39, 0.14);
-  background: rgba(45, 90, 39, 0.03);
+  border-color: var(--primary);
+  background: var(--primary-light);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Variante admin: acento púrpura */
+.role-card--admin:hover {
+  border-color: #7c3aed;
+}
+
+.role-card--admin.is-active {
+  border-color: #7c3aed;
+  background: rgba(124, 58, 237, 0.08);
 }
 
 .role-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: rgba(45, 90, 39, 0.08);
-  display: grid;
-  place-items: center;
-  font-size: 20px;
-}
-
-.role-card.is-active .role-icon {
-  background: rgba(45, 90, 39, 0.14);
+  font-size: 24px;
+  line-height: 1;
 }
 
 .role-title {
   margin: 0;
   font-weight: 700;
+  font-size: var(--text-sm);
   color: var(--ink);
 }
 
 .role-desc {
-  margin: 2px 0 0;
+  margin: 0;
   color: var(--muted);
-  font-size: 13px;
+  font-size: var(--text-xs);
+  line-height: 1.4;
 }
 
 /* ── Alerts ── */
 .alert {
   border-radius: var(--radius-md);
-  padding: 12px 14px;
+  padding: var(--space-3) var(--space-4);
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--text-sm);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
 }
 
 .alert.error {
@@ -427,36 +430,29 @@
 }
 
 .alert.success {
-  background: #e8f5e4;
+  background: #e6f4e1;
   color: var(--primary);
   border: 1px solid #c0e0b8;
 }
 
-/* ── Two Column Grid ── */
+/* ── Two column grid ── */
 .grid.two-cols {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: var(--space-3);
 }
 
-/* ── Logo ── */
-.logo-mark {
-  flex-shrink: 0;
-}
+.logo-mark { flex-shrink: 0; }
 
 /* ═══ Responsive ═══ */
 @media (max-width: 960px) {
   .auth-shell {
     grid-template-columns: 1fr;
   }
+  .auth-hero { order: 2; padding: var(--space-8) var(--space-6); }
+  .auth-panel { order: 1; border-left: none; border-bottom: var(--border-default); }
+}
 
-  .auth-hero {
-    order: 2;
-  }
-
-  .auth-panel {
-    order: 1;
-    border-left: none;
-    border-bottom: 1px solid var(--stroke);
-  }
+@media (max-width: 480px) {
+  .role-grid { grid-template-columns: 1fr; }
 }

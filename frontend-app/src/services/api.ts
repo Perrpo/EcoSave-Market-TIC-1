@@ -256,6 +256,37 @@ class ApiService {
       body: JSON.stringify(data),
     });
   }
+
+  // ── Admin ──────────────────────────────────────────────────────────────────
+
+  async getAdminStats() {
+    return this.request('/admin/stats');
+  }
+
+  async getAdminUsers() {
+    return this.request('/admin/users');
+  }
+
+  async updateAdminUserRole(id: string, role: string) {
+    return this.request(`/admin/users/${id}/role`, {
+      method: 'PATCH',
+      body: JSON.stringify({ role }),
+    });
+  }
+
+  async deleteAdminUser(id: string) {
+    return this.request(`/admin/users/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getAdminDonations(params?: { status?: string; limit?: number; offset?: number }) {
+    const q = new URLSearchParams();
+    if (params?.status) q.append('status', params.status);
+    if (params?.limit)  q.append('limit',  params.limit.toString());
+    if (params?.offset) q.append('offset', params.offset.toString());
+    return this.request(`/admin/donations?${q}`);
+  }
 }
 
 export const apiService = new ApiService();

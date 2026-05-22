@@ -43,15 +43,20 @@ router.group(() => {
   }).prefix('products')
   
   // Donations
-  // IMPORTANTE: Las rutas estáticas (/available, /stats) deben ir ANTES que las dinámicas (/:id)
+  // IMPORTANTE: Las rutas estáticas (/available, /stats, /certificate/*) deben ir ANTES que las dinámicas (/:id)
   router.group(() => {
     router.get('/', '#controllers/http/donation_controller.index')
     router.post('/', '#controllers/http/donation_controller.store')
     router.get('/available', '#controllers/http/donation_controller.getAvailable')
     router.get('/stats', '#controllers/http/donation_controller.getStats')
+    // Certificate routes (estáticas, antes de /:id)
+    router.get('/certificate/all', '#controllers/http/donation_controller.downloadConsolidatedCertificate')
+    router.post('/certificate/send-email', '#controllers/http/donation_controller.sendConsolidatedCertificateEmail')
+    // Dynamic routes
     router.get('/:id', '#controllers/http/donation_controller.show')
     router.post('/:id/request', '#controllers/http/donation_controller.request')
     router.post('/:id/confirm', '#controllers/http/donation_controller.confirm')
+    router.get('/:id/certificate', '#controllers/http/donation_controller.downloadCertificate')
   }).prefix('donations')
 
   // Locations
@@ -105,5 +110,14 @@ router.group(() => {
     // Statistics
     router.get('/stats', '#controllers/http/order_controller.getStats')
   }).prefix('orders')
-  
+
+  // Admin routes — protegidas con validación de rol en el controller
+  router.group(() => {
+    router.get('/stats',              '#controllers/http/user_controller.adminGetStats')
+    router.get('/users',              '#controllers/http/user_controller.adminGetUsers')
+    router.patch('/users/:id/role',   '#controllers/http/user_controller.adminUpdateUserRole')
+    router.delete('/users/:id',       '#controllers/http/user_controller.adminDeleteUser')
+    router.get('/donations',          '#controllers/http/user_controller.adminGetDonations')
+  }).prefix('admin')
+
 }).prefix('/api/v1')

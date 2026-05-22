@@ -1,19 +1,25 @@
+/*
+ * App.css — Root container
+ * CHANGES: Removed center-alignment default; replaced hardcoded
+ * em units with token references; removed unnecessary constraints.
+ */
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
-  text-align: center;
 }
 
 .logo {
-  height: 6em;
-  padding: 1.5em;
+  height: 5rem;
+  padding: var(--space-5);
   will-change: filter;
   transition: filter 300ms;
 }
+
 .logo:hover {
   filter: drop-shadow(0 0 2em rgba(45, 90, 39, 0.5));
 }
 
 .read-the-docs {
-  color: #6c757d;
+  color: var(--muted);
 }

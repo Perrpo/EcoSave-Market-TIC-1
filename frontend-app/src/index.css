@@ -1,169 +1,250 @@
+/*
+ * index.css — EcoSave Market Design System — FULL REDESIGN
+ * Misma paleta de colores, rediseño visual completo.
+ */
+
 @import "tailwindcss";
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 :root {
   color-scheme: light;
-  /* ── Paleta EcoSave Market ── */
-  --primary: #2D5A27;          /* Verde Ecológico */
-  --primary-strong: #1F3E1B;   /* Verde oscuro hover */
-  --accent: #F58220;           /* Naranja Vibrante */
-  --cyan: #00A99D;             /* Cian Tecnológico */
-  --lime: #8DC63F;             /* Verde Lima */
-  --bg: #F8F9FA;               /* Blanco Humo */
-  --card: #ffffff;
-  --ink: #333333;              /* Gris Carbón */
-  --muted: #6c757d;
-  --stroke: #E9ECEF;           /* Gris Plata */
+
+  /* ── Paleta EcoSave Market (sin cambios) ── */
+  --primary:        #2D5A27;
+  --primary-strong: #1F3E1B;
+  --primary-light:  rgba(45, 90, 39, 0.08);
+  --accent:         #F58220;
+  --accent-light:   rgba(245, 130, 32, 0.10);
+  --cyan:           #00A99D;
+  --cyan-light:     rgba(0, 169, 157, 0.10);
+  --lime:           #8DC63F;
+  --bg:             #F4F6F8;
+  --surface:        #FFFFFF;
+  --surface-2:      #F8FAFB;
+  --card:           #FFFFFF;
+  --ink:            #1a1f2e;
+  --ink-2:          #374151;
+  --muted:          #6B7280;
+  --muted-light:    #9CA3AF;
+  --stroke:         #E5E7EB;
+  --stroke-strong:  #D1D5DB;
   --success: #2D5A27;
   --warning: #F58220;
-  --danger: #c52233;
+  --danger:  #c52233;
+
+  /* ── Tipografía ── */
+  --font-display: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  --font-body:    'Inter', system-ui, sans-serif;
+  --font-heading: var(--font-display);
+
+  --text-xs:    clamp(0.75rem,   0.7rem  + 0.15vw, 0.8125rem);
+  --text-sm:    clamp(0.8125rem, 0.78rem + 0.15vw, 0.875rem);
+  --text-base:  clamp(0.9375rem, 0.9rem  + 0.18vw, 1rem);
+  --text-lg:    clamp(1.0625rem, 1rem    + 0.25vw, 1.125rem);
+  --text-xl:    clamp(1.25rem,   1.1rem  + 0.5vw,  1.5rem);
+  --text-2xl:   clamp(1.5rem,    1.3rem  + 0.7vw,  1.875rem);
+  --text-3xl:   clamp(1.875rem,  1.5rem  + 1.2vw,  2.5rem);
+  --text-hero:  clamp(2.25rem,   1.8rem  + 1.8vw,  3.25rem);
+
+  /* ── Espaciado (4px base) ── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-7:  28px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-14: 56px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-32: 128px;
+
+  /* ── Radios ── */
+  --radius-xs: 6px;
   --radius-sm: 8px;
   --radius-md: 12px;
-  --radius-lg: 18px;
-  --shadow-1: 0 12px 30px rgba(45, 90, 39, 0.10);
-  --shadow-2: 0 20px 60px rgba(45, 90, 39, 0.16);
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-7: 32px;
-  --space-8: 40px;
-  --font-heading: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
-  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+
+  /* ── Sombras (multi-capa, cálidas) ── */
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.04);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,0.06), 0 4px 6px rgba(0,0,0,0.04);
+  --shadow-xl: 0 20px 25px rgba(0,0,0,0.07), 0 10px 10px rgba(0,0,0,0.04);
+  /* Legacy */
+  --shadow-1: var(--shadow-md);
+  --shadow-2: var(--shadow-xl);
+
+  /* ── Bordes ── */
+  --border-default: 1px solid var(--stroke);
+  --border-subtle:  1px solid rgba(0,0,0,0.06);
+  --border-strong:  1px solid var(--stroke-strong);
+
+  /* ── Layout ── */
+  --prose-width: 68ch;
+  --sidebar-width: 260px;
+  --sidebar-collapsed: 72px;
 }
 
-/* Dark mode deshabilitado — la guía de identidad visual usa Estilo Ejecutivo (Limpio) */
+/* ═══════════════════════════════════════
+   RESET & BASE
+   ═══════════════════════════════════════ */
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
 
 body {
   margin: 0;
   font-family: var(--font-body);
+  font-size: var(--text-base);
   color: var(--ink);
   background: var(--bg);
-  line-height: 1.5;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
+a { color: inherit; text-decoration: none; }
 
-img {
-  max-width: 100%;
-  display: block;
+img { max-width: 100%; display: block; background: var(--stroke); }
+
+/* ── Skip Link ── */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: var(--space-4);
+  background: var(--primary);
+  color: #fff;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  z-index: 9999;
 }
+.skip-link:focus { top: var(--space-2); }
+
+/* ═══════════════════════════════════════
+   APP LAYOUT
+   ═══════════════════════════════════════ */
 
 .layout {
   display: grid;
   grid-template-columns: auto 1fr;
   min-height: 100vh;
+  background: var(--bg);
 }
 
 .main-content {
-  padding: 20px clamp(16px, 3vw, 32px);
+  padding: var(--space-7) clamp(var(--space-5), 3vw, var(--space-10));
+  min-width: 0;
+  overflow: hidden;
 }
 
+/* ═══════════════════════════════════════
+   TOKENS GLOBALES
+   ═══════════════════════════════════════ */
+
+/* ── Card ── */
+.card {
+  background: var(--card);
+  border: var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Badge ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: var(--text-xs);
+}
+.badge.success { background: #e6f4e1; color: var(--primary); }
+.badge.warning { background: #fef0e0; color: #c06a10; }
+.badge.danger  { background: #fde8e8; color: var(--danger); }
+
+/* ── FAB ── */
+.fab {
+  position: fixed;
+  bottom: var(--space-6);
+  right: var(--space-6);
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  font-size: 24px;
+  font-weight: 400;
+  box-shadow: var(--shadow-lg), 0 0 0 4px rgba(245, 130, 32, 0.15);
+  cursor: pointer;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+  z-index: 99;
+}
+.fab:hover  { transform: scale(1.07); box-shadow: var(--shadow-xl), 0 0 0 6px rgba(245, 130, 32, 0.12); }
+.fab:active { transform: scale(0.96); }
+
+/* ── Utilidades ── */
+.mt-4 { margin-top: var(--space-4); }
+
+/* ── Buttons globales ── */
 .btn-primary {
   background: var(--primary);
   color: #fff;
   border: none;
   border-radius: var(--radius-md);
-  padding: 12px 16px;
+  padding: var(--space-3) var(--space-5);
+  font-size: var(--text-sm);
   font-weight: 700;
   cursor: pointer;
-  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+  transition: background 140ms ease, transform 120ms ease, box-shadow 120ms ease;
+  min-height: 44px;
 }
-
-.btn-primary:hover {
-  transform: translateY(-1px);
-  background: var(--primary-strong);
-  box-shadow: var(--shadow-1);
-}
+.btn-primary:hover  { background: var(--primary-strong); box-shadow: var(--shadow-md); }
+.btn-primary:active { transform: scale(0.98); }
 
 .btn-secondary {
-  background: transparent;
+  background: var(--surface);
   color: var(--ink);
-  border: 1px solid var(--stroke);
+  border: var(--border-default);
   border-radius: var(--radius-md);
-  padding: 12px 16px;
-  font-weight: 700;
+  padding: var(--space-3) var(--space-5);
+  font-size: var(--text-sm);
+  font-weight: 600;
   cursor: pointer;
-  transition: border 120ms ease, color 120ms ease;
+  transition: border-color 140ms ease, color 140ms ease;
+  min-height: 44px;
 }
+.btn-secondary:hover  { border-color: var(--primary); color: var(--primary); }
+.btn-secondary:active { opacity: 0.8; }
 
-.btn-secondary:hover {
-  border-color: var(--primary);
-  color: var(--primary);
-}
-
-.card {
-  background: var(--card);
-  border: 1px solid var(--stroke);
-  border-radius: var(--radius-lg);
-  padding: 20px;
-  box-shadow: var(--shadow-1);
-}
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-weight: 700;
-  font-size: 12px;
-}
-
-.badge.success {
-  background: #e8f5e4;
-  color: #2D5A27;
-}
-
-.badge.warning {
-  background: #fef0e0;
-  color: #c06a10;
-}
-
-.badge.danger {
-  background: #fde8e8;
-  color: #c52233;
-}
-
-.fab {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: 50%;
-  width: 60px;
-  height: 60px;
-  display: grid;
-  place-items: center;
-  font-size: 26px;
-  box-shadow: var(--shadow-2);
-  cursor: pointer;
-  transition: transform 120ms ease, background 120ms ease;
-}
-
-.fab:hover {
-  transform: scale(1.05);
-  background: #d96f15;
-}
+/* ═══════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════ */
 
 @media (max-width: 900px) {
   .layout {
     grid-template-columns: 1fr;
   }
   .main-content {
-    padding-bottom: 80px;
+    padding-bottom: var(--space-20);
   }
+}
+
+@media (hover: none) {
+  .btn-primary, .btn-secondary, .fab { min-height: 44px; min-width: 44px; }
 }

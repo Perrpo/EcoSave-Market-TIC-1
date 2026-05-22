@@ -156,13 +156,13 @@ const AuthForm: React.FC = () => {
     }
   }
 
-  const renderRoleCards = (selected: Role, onSelect: (r: Role) => void) => (
+  const renderRoleCards = (selected: Role, onSelect: (r: Role) => void, includeAdmin = false) => (
     <div className="role-grid" role="group" aria-label="Selecciona tu rol">
-      {(['supermarket', 'ong'] as Role[]).map((r) => (
+      {([...(includeAdmin ? ['supermarket', 'ong', 'admin'] : ['supermarket', 'ong'])] as Role[]).map((r) => (
         <button
           type="button"
           key={r}
-          className={`role-card ${selected === r ? 'is-active' : ''}`}
+          className={`role-card ${selected === r ? 'is-active' : ''} ${r === 'admin' ? 'role-card--admin' : ''}`}
           onClick={() => onSelect(r)}
         >
           <div className="role-icon">
@@ -247,7 +247,7 @@ const AuthForm: React.FC = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
-          {tab === 'login' ? renderRoleCards(loginRole, setLoginRole) : renderRoleCards(role, setRole)}
+          {tab === 'login' ? renderRoleCards(loginRole, setLoginRole, true) : renderRoleCards(role, setRole, false)}
 
           {tab === 'register' && (
             <>

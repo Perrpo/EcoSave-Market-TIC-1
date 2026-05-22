@@ -33,4 +33,30 @@ export default class UserService {
     if (data.nit) updateData.nit = data.nit
     return await repository.updateProfile(userId, updateData)
   }
+
+  // ─── Admin ───────────────────────────────────────────────────────────────
+
+  /** Lista todos los perfiles (requiere token admin con cliente privilegiado) */
+  async getAllProfiles(accessToken?: string) {
+    const repository = this.getRepository(accessToken, true)
+    return await repository.getAllProfiles()
+  }
+
+  /** Cambia el rol de un usuario */
+  async updateUserRole(userId: string, role: string, accessToken?: string) {
+    const repository = this.getRepository(accessToken, true)
+    return await repository.updateUserRole(userId, role)
+  }
+
+  /** Elimina el perfil de un usuario */
+  async deleteUser(userId: string, accessToken?: string) {
+    const repository = this.getRepository(accessToken, true)
+    return await repository.deleteUserProfile(userId)
+  }
+
+  /** Métricas globales del sistema para el admin */
+  async getAdminStats(accessToken?: string) {
+    const repository = this.getRepository(accessToken, true)
+    return await repository.getAdminStats()
+  }
 }

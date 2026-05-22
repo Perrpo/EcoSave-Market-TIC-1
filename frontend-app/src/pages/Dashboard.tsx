@@ -340,89 +340,45 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* ── MÉTRICAS DE IMPACTO AMBIENTAL Y SOCIAL ── */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-        gap: '16px',
-        margin: '0 0 24px',
-      }}>
+      <div className="impact-grid">
         {/* Kg Rescatados */}
-        <div style={{
-          background: 'linear-gradient(135deg, #00A99D15, #00A99D05)',
-          border: '1.5px solid #00A99D30',
-          borderRadius: '16px',
-          padding: '20px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '6px',
-        }}>
-          <div style={{ fontSize: '1.8rem' }}>🌿</div>
-          <div style={{ fontSize: '1.7rem', fontWeight: 800, color: '#00A99D' }}>{kgRescatados.toFixed(1)} kg</div>
-          <div style={{ fontSize: '0.82rem', color: '#6b7280', fontWeight: 600 }}>Alimentos Rescatados</div>
-          <div style={{ fontSize: '0.74rem', color: '#9ca3af' }}>Estimado a 0.5 kg/unidad</div>
+        <div className="impact-card impact-card--cyan">
+          <div className="impact-card__emoji">🌿</div>
+          <div className="impact-card__value">{kgRescatados.toFixed(1)} kg</div>
+          <div className="impact-card__label">Alimentos Rescatados</div>
+          <div className="impact-card__sub">Estimado a 0.5 kg/unidad</div>
         </div>
 
         {/* CO₂ Evitado */}
-        <div style={{
-          background: 'linear-gradient(135deg, #2D5A2715, #2D5A2705)',
-          border: '1.5px solid #2D5A2730',
-          borderRadius: '16px',
-          padding: '20px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '6px',
-        }}>
-          <div style={{ fontSize: '1.8rem' }}>☁️</div>
-          <div style={{ fontSize: '1.7rem', fontWeight: 800, color: '#2D5A27' }}>{co2Evitado} kg</div>
-          <div style={{ fontSize: '0.82rem', color: '#6b7280', fontWeight: 600 }}>CO₂ Evitado</div>
-          <div style={{ fontSize: '0.74rem', color: '#9ca3af' }}>Ref: 2.5 kg CO₂ por kg rescatado</div>
+        <div className="impact-card impact-card--green">
+          <div className="impact-card__emoji">☁️</div>
+          <div className="impact-card__value">{co2Evitado} kg</div>
+          <div className="impact-card__label">CO₂ Evitado</div>
+          <div className="impact-card__sub">Ref: 2.5 kg CO₂ por kg rescatado</div>
         </div>
 
         {/* Tasa de Donación */}
-        <div style={{
-          background: 'linear-gradient(135deg, #F5822015, #F5822005)',
-          border: '1.5px solid #F5822030',
-          borderRadius: '16px',
-          padding: '20px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '8px',
-        }}>
-          <div style={{ fontSize: '1.8rem' }}>📊</div>
-          <div style={{ fontSize: '1.7rem', fontWeight: 800, color: '#F58220' }}>{tasaDonacion}%</div>
-          <div style={{ fontSize: '0.82rem', color: '#6b7280', fontWeight: 600 }}>Tasa de Donación</div>
-          <div style={{
-            height: '6px', borderRadius: '3px',
-            background: '#f3f4f6', overflow: 'hidden',
-          }}>
-            <div style={{
-              height: '100%', width: `${tasaDonacion}%`,
-              background: 'linear-gradient(90deg, #F58220, #f5a623)',
-              borderRadius: '3px', transition: 'width 0.8s ease',
-            }} />
+        <div className="impact-card impact-card--orange">
+          <div className="impact-card__emoji">📊</div>
+          <div className="impact-card__value">{tasaDonacion}%</div>
+          <div className="impact-card__label">Tasa de Donación</div>
+          <div className="progress-bar">
+            <div className="progress-bar__fill" style={{ width: `${tasaDonacion}%` }} />
           </div>
         </div>
 
         {/* Categoría más donada + mini-breakdown */}
-        <div style={{
-          background: 'linear-gradient(135deg, #7c3aed15, #7c3aed05)',
-          border: '1.5px solid #7c3aed30',
-          borderRadius: '16px',
-          padding: '20px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '8px',
-        }}>
-          <div style={{ fontSize: '1.8rem' }}>🏆</div>
-          <div style={{ fontSize: '1rem', fontWeight: 800, color: '#7c3aed' }}>{topCategory}</div>
-          <div style={{ fontSize: '0.82rem', color: '#6b7280', fontWeight: 600, marginBottom: '4px' }}>Categoría más donada</div>
+        <div className="impact-card impact-card--purple">
+          <div className="impact-card__emoji">🏆</div>
+          <div className="impact-card__value">{topCategory}</div>
+          <div className="impact-card__label">Categoría más donada</div>
           {categoryBreakdown.map(({ cat, pct }) => (
-            <div key={cat} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.72rem', color: '#6b7280' }}>
-              <span style={{ width: '70px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cat}</span>
-              <div style={{ flex: 1, height: '5px', borderRadius: '3px', background: '#f3f4f6', overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${pct}%`, background: '#7c3aed50', borderRadius: '3px' }} />
+            <div key={cat} className="category-row">
+              <span className="category-row__name">{cat}</span>
+              <div className="category-row__bar">
+                <div className="category-row__fill" style={{ width: `${pct}%` }} />
               </div>
-              <span style={{ fontWeight: 700 }}>{pct}%</span>
+              <span className="category-row__pct">{pct}%</span>
             </div>
           ))}
         </div>
@@ -576,31 +532,23 @@ const Dashboard: React.FC = () => {
         </div>
 
         <div className="notif-list">
-          <div className="card" style={{ padding: '20px' }}>
-            <div style={{ marginBottom: '12px' }}>
-              <h3 style={{ margin: '0 0 4px', fontSize: '1rem', fontWeight: 700, color: 'var(--ink)' }}>⚠️ Alertas de vencimiento</h3>
-              <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--muted)' }}>Productos que requieren acción</p>
+          <div className="alerts-card">
+            <div className="alerts-card__header">
+              <h3 className="alerts-card__title">⚠️ Alertas de vencimiento</h3>
+              <p className="alerts-card__sub">Productos que requieren acción</p>
             </div>
-            <div style={{ borderTop: '1px solid var(--stroke)', paddingTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div className="alerts-card__body">
               {activeProducts.filter(p => getExpiryClass(p.vencimiento) !== 'green').map(p => (
-                <div key={p.id} style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  background: 'var(--bg)',
-                  border: '1px solid var(--stroke)',
-                  borderRadius: '10px',
-                  padding: '10px 12px',
-                }}>
-                  <div>
-                    <div style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{p.categoria}</div>
-                    <div style={{ fontWeight: 600, color: 'var(--ink)', fontSize: '0.9rem' }}>{p.nombre}</div>
+                <div key={p.id} className="alert-row">
+                  <div className="alert-row__meta">
+                    <div className="alert-row__cat">{p.categoria}</div>
+                    <div className="alert-row__name">{p.nombre}</div>
                   </div>
                   <span className={`tag ${getExpiryClass(p.vencimiento)}`}>{new Date(p.vencimiento).toLocaleDateString()}</span>
                 </div>
               ))}
               {activeProducts.filter(p => getExpiryClass(p.vencimiento) !== 'green').length === 0 && (
-                <div style={{ fontSize: '0.875rem', color: 'var(--muted)', fontStyle: 'italic' }}>Sin alertas por ahora ✅</div>
+                <p className="no-alerts">Sin alertas por ahora ✅</p>
               )}
             </div>
           </div>
@@ -609,58 +557,32 @@ const Dashboard: React.FC = () => {
 
       {/* Sección de solicitudes de ONGs */}
       {donations.filter(d => d.status === 'requested').length > 0 && (
-        <div className="card" style={{ borderLeft: '4px solid #F58220' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <div className="ong-requests-card">
+          <div className="ong-requests-header">
             <div>
-              <h3 className="main-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '1.3rem' }}>🔔</span> Solicitudes de ONGs
+              <h3 className="ong-requests-title">
+                🔔 Solicitudes de ONGs
               </h3>
-              <p className="subtitle">ONGs que han solicitado tus donaciones — confirma la entrega</p>
+              <p className="ong-requests-sub">ONGs que han solicitado tus donaciones — confirma la entrega</p>
             </div>
-            <span style={{
-              background: '#F58220',
-              color: '#fff',
-              borderRadius: '999px',
-              padding: '4px 14px',
-              fontWeight: 700,
-              fontSize: '0.85rem'
-            }}>
+            <span className="ong-pending-badge">
               {donations.filter(d => d.status === 'requested').length} pendiente(s)
             </span>
           </div>
-          <div style={{ display: 'grid', gap: '12px' }}>
+          <div className="ong-requests-list">
             {donations.filter(d => d.status === 'requested').map(donation => (
-              <div key={donation.id} style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '14px 16px',
-                border: '1px solid #e9ecef',
-                borderRadius: '12px',
-                background: '#fffaf5',
-                gap: '16px',
-                flexWrap: 'wrap'
-              }}>
-                <div style={{ flex: 1, minWidth: '200px' }}>
-                  <div style={{ fontWeight: 700, fontSize: '1rem', marginBottom: '4px' }}>
-                    {donation.product_name}
-                  </div>
-                  <div style={{ color: '#6c757d', fontSize: '0.85rem' }}>
-                    {donation.product_category} • {donation.quantity} unidades • Solicitado el {new Date(donation.requested_at || donation.created_at).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })}
+              <div key={donation.id} className="ong-request-row">
+                <div className="ong-request-info">
+                  <div className="ong-request-name">{donation.product_name}</div>
+                  <div className="ong-request-meta">
+                    {donation.product_category} · {donation.quantity} unidades · Solicitado el{' '}
+                    {new Date(donation.requested_at || donation.created_at).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })}
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  <span style={{
-                    background: '#fff3cd',
-                    color: '#856404',
-                    padding: '4px 12px',
-                    borderRadius: '999px',
-                    fontSize: '0.78rem',
-                    fontWeight: 600
-                  }}>
-                    ⏳ Pendiente
-                  </span>
+                <div className="ong-request-actions">
+                  <span className="status-pending">⏳ Pendiente</span>
                   <button
+                    className="btn-confirm"
                     onClick={async () => {
                       try {
                         const resp = await apiService.confirmDonation(donation.id);
@@ -677,20 +599,6 @@ const Dashboard: React.FC = () => {
                       } catch {
                         alert('Error al confirmar la entrega.');
                       }
-                    }}
-                    style={{
-                      background: 'linear-gradient(135deg, #2D5A27, #3a7a32)',
-                      color: '#fff',
-                      border: 'none',
-                      padding: '8px 18px',
-                      borderRadius: '8px',
-                      fontWeight: 700,
-                      fontSize: '0.85rem',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      transition: 'all 180ms ease'
                     }}
                   >
                     ✅ Confirmar Entrega

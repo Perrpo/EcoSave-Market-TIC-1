@@ -320,7 +320,7 @@ export default class DonationController {
       const pdfBuffer = await certificateGeneratorService.generateCertificate(id)
 
       response.header('Content-Type', 'application/pdf')
-      response.header('Content-Disposition', `attachment; filename="certificado-donacion-${id.slice(0, 8)}.pdf"`)
+      response.header('Content-Disposition', `attachment; filename="certificado-donacion-${String(id).slice(0, 8)}.pdf"`)
       
       return response.send(pdfBuffer)
     } catch (error) {

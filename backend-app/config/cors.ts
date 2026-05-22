@@ -9,8 +9,14 @@ import env from '#start/env'
  */
 const corsConfig = defineConfig({
   enabled: true,
-  origin: [env.get('FRONTEND_URL') ?? 'http://localhost:5173'],
-  methods: ['GET', 'HEAD', 'POST', 'PUT', 'DELETE'],
+  // Permite tanto el dev server (5173) como la producción de nginx (puerto 80)
+  origin: [
+    env.get('FRONTEND_URL') ?? 'http://localhost:5173',
+    'http://localhost',
+    'http://localhost:80',
+    'http://localhost:3000',
+  ],
+  methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   headers: true,
   exposeHeaders: [],
   credentials: true,
